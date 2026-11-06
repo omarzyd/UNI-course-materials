@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 252" width="400" height="252" role="img" aria-label="MC control as generalized policy iteration: evaluate Q and make the policy epsilon-greedy in a loop">
+<title>MC control as generalized policy iteration</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<rect x="18" y="90" width="130" height="56" rx="9" fill="#f4f3f0" stroke="#c3c2b7" stroke-width="1.2"/>
+<rect x="252" y="90" width="130" height="56" rx="9" fill="#e8f1fc" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="83" y="113" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="13" fill="#111111" text-anchor="middle">Policy</text>
+<text x="83" y="134" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="16" fill="#111111" text-anchor="middle">π</text>
+<text x="317" y="113" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="13" fill="#111111" text-anchor="middle">Values</text>
+<text x="317" y="134" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="16" fill="#111111" text-anchor="middle">Q</text>
+<path d="M83,86 C83,50 317,50 317,80" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#ah)"/>
+<path d="M317,150 C317,186 83,186 83,156" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#ah)"/>
+<text x="200" y="20" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="13" fill="#111111" text-anchor="middle">evaluate (one episode)</text>
+<text x="200" y="41" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="14" fill="#111111" text-anchor="middle">Q → q<tspan font-size="10" dy="4">π</tspan></text>
+<text x="200" y="203" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="13" fill="#111111" text-anchor="middle">improve</text>
+<text x="200" y="223" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="14" fill="#111111" text-anchor="middle">π → ε-greedy(Q)</text>
+<text x="200" y="246" font-family="'DejaVu Sans',Helvetica,Arial,sans-serif" font-size="11.5" fill="#52514e" text-anchor="middle">When neither changes, π is the best ε-greedy policy</text>
+</svg>

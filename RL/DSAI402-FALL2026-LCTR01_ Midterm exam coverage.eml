@@ -1,0 +1,180 @@
+Delivered-To: s-omar.zayed@zewailcity.edu.eg
+Received: by 2002:a05:6a10:8d06:b0:750:7e45:358e with SMTP id hm6csp73088pxb;
+        Wed, 4 Nov 2026 02:16:41 -0800 (PST)
+X-Received: by 2002:a05:600c:4687:b0:4a2:10f9:37db with SMTP id 5b1f17b1804b1-4ac16fa4dadmr346348795e9.7.1793787401631;
+        Wed, 04 Nov 2026 02:16:41 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793787401; cv=none;
+        d=google.com; s=arc-20260327;
+        b=FIZrZ2YCTGV115MzvWWsGlmAsjZ2hubqVV/zYWfNm/iWl6uNE4WpXNMQql7Wpug90E
+         BcLcmFSd1JoOmN+NVVnMihnOmSHLfNDO1YuxuIQ2oRM26blWDVyzUp3CnzXlLlHFgL2y
+         9AmXD7kURQjBZp8l2XPtF3VLr5rEvVoH6EeHyiMF4M6Ox4Vkb7e0kd4Yyh9LYKkrDu2w
+         0sFClaQMrjSlSSYQc0lVJzlJSLrQ0CmfvQ85iNGgE9IZV65Y+D0C95oHqZJJa93uTX8x
+         H4yXuOCqhtYqxa5nDLK9W60kj3jgCtDErpuKCqGdR5Hsl742jSlIxAouJvu7z7Mw9XL2
+         uuVA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=mime-version:thread-index:thread-topic:references:in-reply-to
+         :list-unsubscribe:auto-submitted:precedence:list-help:list-id
+         :message-id:subject:reply-to:from:to:date:dkim-signature;
+        bh=RaeVuOaWHVkA5B8IgdfJV0UN6J82m2Zz9Lkr0DdO6KQ=;
+        fh=05/+Op+1b6rQoFnmXZEr+eQz1+sbF2MHpYeNHS589KI=;
+        b=GwDb0kOo81hgcHk5YTmT1D3pjwqjvQsdDBI5mskg7OHB6EU30sFpb1Y8Wk/fY2I3jw
+         umsF5OuNyLHQYtshCPuelCwIMXXECrnuNiPrpRrsQMDp8O6CSGKkppWWw8ZsJRxafsp5
+         QXfzKwR9WJi6Exmw68uADTNn+JGEj297Ixpa2Nyb6r9pI4Bo8J3Ccm8HSuJ9qv5MEhqg
+         lvKpAwl4Zsnwi0rV7OKr1167IdQMoBdB5cV7cRw1yy8irLbscq2OVcs24bsrwA28LTGz
+         Mz2Yy9HxFKtfwSLw79m3wgrf+rcfTIyyNkFAogcMl3J72HI6Jbs1+AurzsylJ99mM4/g
+         bleQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@zewailcity-edu-eg.20260707.gappssmtp.com header.s=20260707 header.b=OaOQXnof;
+       spf=pass (google.com: domain of moodle-noreply@zewailcity.edu.eg designates 209.85.220.97 as permitted sender) smtp.mailfrom=moodle-noreply@zewailcity.edu.eg;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=zewailcity.edu.eg;
+       dara=neutral header.i=@zewailcity.edu.eg
+Return-Path: <moodle-noreply@zewailcity.edu.eg>
+Received: from mail-sor-f97.google.com (mail-sor-f97.google.com. [209.85.220.97])
+        by mx.google.com with SMTPS id 5b1f17b1804b1-4b43c83f5besor3535255e9.3.2026.11.04.02.16.41
+        for <s-omar.zayed@zewailcity.edu.eg>
+        (Google Transport Security);
+        Wed, 04 Nov 2026 02:16:41 -0800 (PST)
+Received-SPF: pass (google.com: domain of moodle-noreply@zewailcity.edu.eg designates 209.85.220.97 as permitted sender) client-ip=209.85.220.97;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@zewailcity-edu-eg.20260707.gappssmtp.com header.s=20260707 header.b=OaOQXnof;
+       spf=pass (google.com: domain of moodle-noreply@zewailcity.edu.eg designates 209.85.220.97 as permitted sender) smtp.mailfrom=moodle-noreply@zewailcity.edu.eg;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=zewailcity.edu.eg;
+       dara=neutral header.i=@zewailcity.edu.eg
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=zewailcity-edu-eg.20260707.gappssmtp.com; s=20260707; t=1793787401; x=1794392201; darn=zewailcity.edu.eg;
+        h=content-type:mime-version:thread-index:thread-topic:references
+         :in-reply-to:list-unsubscribe:auto-submitted:precedence:list-help
+         :list-id:message-id:subject:reply-to:from:to:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=RaeVuOaWHVkA5B8IgdfJV0UN6J82m2Zz9Lkr0DdO6KQ=;
+        b=OaOQXnofE9pTSLtkewK7zQL6EsWSL5m0+AMGqf/rqryKqhxOv0fXeTx7vpsF9eyfKG
+         ny0B0gn6QWUdHFkIycUYxYdlGfnKTOpVljtJxM7QsHh5dhgKX4Xi3HYGdITUeHqGXN9Y
+         A/Tz5lnfZ9wR8LXvN1IsfbvDdOCl8Y+uM7SPD/Gewg1Fg78961FrkY+pyP0hwCmVbXI2
+         XdL9bzVGW8UbWYVMIXDKD7gUw9TK2NfuQD8NH11EyGdWcSpUcBgRVt+wUxwdx8kj/xJV
+         O7p7gbMBiqBTAo1btSoFEAnMfO/BhTKyqEcKswxI2T795E6nO/gMY+TY3rWQEJUUCtuq
+         p0eA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793787401; x=1794392201;
+        h=content-type:mime-version:thread-index:thread-topic:references
+         :in-reply-to:list-unsubscribe:auto-submitted:precedence:list-help
+         :list-id:message-id:subject:reply-to:from:to:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=RaeVuOaWHVkA5B8IgdfJV0UN6J82m2Zz9Lkr0DdO6KQ=;
+        b=k/QwVXrYNt3OJWFlc97UqVg48RIpGpT38vnqby9Uvoznnp5P8jYNtqdYmJfPRi5BLX
+         xBhPtr/3oLMiDKiNdF2EpdBuvX8A5a2FQFso4O6GszeSC+L0/MtuwxSNZR8PDjw8rTzW
+         zAMDpPG7goyAePNL6AzNQpAif+QBykl/vn5bDrC56ImfnHdf1iRd0t5zGPKlDHYH6tCv
+         8SnQth0W3HTb7RPUbQpFoMoAboxrtnlFUUJZaL0Oa3hwOGAisu07p/Rvrk4DW9LSkyAy
+         DoPDqOUoPdLY57P+zRCGF4W2aU5CYD/tnjgBciCzh50PIfkzr03GwFlx1pcTw/RY/8d0
+         Mxww==
+X-Gm-Message-State: APuU4Z+UHMz7xQsKvzV38d85dTkVnCtdYTP4stpJsChOAqI12G9K+Sxh
+	v1RGRkIoWgAdORsaL6T1+Ep15CAvlwbW4RJu6t1PYogtoafYIfD6CBAmEyrq6LXhsESxEkjIhEO
+	R/5ftB+C5s+37DWCdAZvfj2+79re749mynBCvo6UXC7fMuA==
+X-Gm-Gg: AYBFou3tcKdcNyrxoubBI51YKNxV+XoOkXrQHinCUaS+eDrPxOL2+goVrzPJaMzJAx0
+	Kri1T/XFJUSqagXthP9nYg4MWqzKZj+RDvdOoDm+F0bVhz4NBv002AKRKOuLxzENc3NiXEDfSZu
+	eL3SIEZehzOHmNU7S4NLxMBNcwkvJKyfZy7uM5Mhuot8OYotXxltGKmTixsz0Zlv73pD4Ba+Rjw
+	SdOhy/lxpnGRpGhrgNPzxx/mRYjLZFG8b7k0vTrj9f5+IqeUerEXPtsw4VcDEJCkPfJSrIJ8krx
+	PJxuMyuEGXXjve7zD3p1AJReRJZW5T95aG2DY/3EVhVBybqJQPe0Ro5I8AVVJPpNqJKcZJJ9Lit
+	e6uNz5iI8yZv1S+vDHYVE01rooynlkw==
+X-Received: by 2002:a05:600c:4715:b0:49f:ffa2:1c72 with SMTP id 5b1f17b1804b1-4ac17567cc8mr342158455e9.11.1793787400994;
+        Wed, 04 Nov 2026 02:16:40 -0800 (PST)
+Return-Path: <moodle-noreply@zewailcity.edu.eg>
+Received: from moodle-cron-5549fbf8c-76lpf ([92.5.30.201])
+        by smtp-relay.gmail.com with ESMTPS id 5b1f17b1804b1-4b2aad2f12esm11259445e9.11.2026.11.04.02.16.40
+        for <s-omar.zayed@zewailcity.edu.eg>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 02:16:40 -0800 (PST)
+X-Relaying-Domain: zewailcity.edu.eg
+Date: Wed, 4 Nov 2026 12:16:40 +0200
+To: "Omar Zayed" <s-omar.zayed@zewailcity.edu.eg>
+From: "Mohamed Fakhry Eldin Ghalwash (via Zewail City)" <moodle-noreply@zewailcity.edu.eg>
+Reply-To: "Do not reply to this email" <moodle-noreply@zewailcity.edu.eg>
+Subject: DSAI402-FALL2026-LCTR01: Midterm exam coverage
+Message-ID: <147291353a577a7ebc50e8ffd5e588e28adc16e32003797fec5dfc74af4c0d3a@moodle.zewailcity.edu.eg>
+X-Priority: 3
+X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+List-Id: "General Announcements" <moodleforum3599@moodle.zewailcity.edu.eg>
+List-Help: https://moodle.zewailcity.edu.eg/mod/forum/view.php?f=3599
+X-Course-Id: 2256
+X-Course-Name: Reinforcement Learning -DSAI402-FALL2026-LCTR01
+Precedence: Bulk
+X-Auto-Response-Suppress: All
+Auto-Submitted: auto-generated
+List-Unsubscribe: <>
+In-Reply-To: <147291353a577a7ebc50e8ffd5e588e28adc16e32003797fec5dfc74af4c0d3a@moodle.zewailcity.edu.eg>
+References: <147291353a577a7ebc50e8ffd5e588e28adc16e32003797fec5dfc74af4c0d3a@moodle.zewailcity.edu.eg>
+Thread-Topic: DSAI402-FALL2026-LCTR01: Midterm exam coverage
+Thread-Index: 147291353a577a7ebc50e8ffd5e5
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="b1=_ghGjJI3FnkaYH9WKHgvFdSkMOVgsD5Y0YIalC7DeZA4"
+
+--b1=_ghGjJI3FnkaYH9WKHgvFdSkMOVgsD5Y0YIalC7DeZA4
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+
+DSAI402-FALL2026-LCTR01 -> Forums -> General Announcements -> Midterm exam
+coverage
+https://moodle.zewailcity.edu.eg/mod/forum/discuss.php?d=3D1859#p1909
+Midterm exam coverage
+by Mohamed Fakhry Eldin Ghalwash - Wednesday, 4 November 2026, 11:44 AM
+---------------------------------------------------------------------
+Hello All,
+
+As we agreed the midterm exam covers all topics including the last lecture
+(MC control). In addition, all assigned papers are also included in the
+exam.=C2=A0
+
+Good Luck!=C2=A0
+
+---------------------------------------------------------------------
+This is a copy of a message posted in DSAI402-FALL2026-LCTR01.
+
+Change your forum digest preferences:
+https://moodle.zewailcity.edu.eg/mod/forum/index.php?id=3D2256
+
+--b1=_ghGjJI3FnkaYH9WKHgvFdSkMOVgsD5Y0YIalC7DeZA4
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div class=3D"navbar">=0A    <div class=3D"container-fluid p-0">=0A        =
+<a target=3D"_blank" href=3D"https://moodle.zewailcity.edu.eg/course/view.p=
+hp?id=3D2256">DSAI402-FALL2026-LCTR01</a>=0A        &raquo;=0A        <a ta=
+rget=3D"_blank" href=3D"https://moodle.zewailcity.edu.eg/mod/forum/index.ph=
+p?id=3D2256">Forums</a>=0A        &raquo;=0A        <a target=3D"_blank" hr=
+ef=3D"https://moodle.zewailcity.edu.eg/mod/forum/view.php?f=3D3599">General=
+ Announcements</a>=0A        &raquo;=0A        <a target=3D"_blank" href=3D=
+"https://moodle.zewailcity.edu.eg/mod/forum/discuss.php?d=3D1859">Midterm e=
+xam coverage </a>=0A    </div>=0A</div>=0A=0A=0A    <table border=3D"0" cel=
+lpadding=3D"3" cellspacing=3D"0" class=3D"forumpost">=0A        <tr class=
+=3D"header">=0A            <td width=3D"35" valign=3D"top" class=3D"picture=
+ left">=0A                <a href=3D"https://moodle.zewailcity.edu.eg/user/=
+view.php?id=3D6326&amp;course=3D2256" class=3D"d-inline-block aabtn"><span =
+class=3D"userinitials size-35">MF</span></a>=0A            </td>=0A        =
+    <td class=3D"topic starter">=0A                <div class=3D"subject">=
+=0A                    Midterm exam coverage =0A                </div>=0A  =
+              <div class=3D"author">=0A                    by <a target=3D'=
+_blank' href=3D'https://moodle.zewailcity.edu.eg/user/view.php?id=3D6326&co=
+urse=3D2256'>Mohamed Fakhry Eldin Ghalwash</a> - Wednesday, 4 November 2026=
+, 11:44 AM=0A                </div>=0A            </td>=0A        </tr>=0A =
+       <tr>=0A            <td class=3D"left side" valign=3D"top">=0A       =
+             &nbsp;=0A            </td>=0A            <td class=3D"content"=
+>=0A                =0A                <p>Hello All,</p>
+<p>As we agreed the midterm exam covers all topics including the last lectu=
+re (MC control). In addition, all assigned papers are also included in the =
+exam.=C2=A0</p>
+<p>Good Luck!=C2=A0</p>
+<p></p>=0A                =0A=0A                <div class=3D"commands">=0A=
+                </div>=0A=0A                <div class=3D"link">=0A        =
+            <a target=3D"_blank" href=3D"https://moodle.zewailcity.edu.eg/m=
+od/forum/discuss.php?d=3D1859#p1909">=0A                        See this po=
+st in context=0A                    </a>=0A                </div>=0A       =
+     </td>=0A        </tr>=0A    </table>=0A=0A<hr />=0A<div class=3D"mdl-a=
+lign unsubscribelink">=0A    <a href=3D"https://moodle.zewailcity.edu.eg/mo=
+d/forum/index.php?id=3D2256">Change your forum digest preferences</a>=0A</d=
+iv>
+
+--b1=_ghGjJI3FnkaYH9WKHgvFdSkMOVgsD5Y0YIalC7DeZA4--
+
