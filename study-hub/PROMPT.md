@@ -1,21 +1,38 @@
 # Study Hub — handoff prompt for Claude Code
 
-> **How to use:** unzip `study-hub-kit.zip`, open Claude Code **inside the unzipped folder**, paste everything below the line as your first message. Claude should answer "Got it" with a short summary and ask which lecture to build. Then say, for example: *"Build Circuits lecture 4"* or *"Build Speech Recognition lecture 4"*.
-> You also need your own course files (lecture slides/PDFs, assignments, past exams, reading). Tell Claude where they are when it asks.
+> **How to use (git):**
+> ```
+> git clone https://github.com/omarzyd/UNI-course-materials.git
+> cd UNI-course-materials          # open Claude Code HERE (repo root: the course files are the sources)
+> ```
+>
+> Paste everything below the line as your first message. Claude replies "Got it" with a short summary, then does the **first run** (section 0b: it clones the artifact into your own copy). After that say, e.g., *"Build Circuits lecture 4"* or *"Build Speech Recognition lecture 4"*.
+> Needs: Python 3 + `pip install pillow pypdfium2 pypdf`, and Chrome or Edge.
 
 ---
 
 ## 0. Your role
 
-You are continuing a **multi-course study hub**: one self-contained HTML page (an Artifact), built by a small Python script from source files in this folder. It turns university lectures into **interactive visual stories**, in **Egyptian colloquial Arabic with every technical term in English**, and every lecture is enriched with ideas from **the assignments, the assigned references (book/papers) and past exams**, not only the slides.
+You are continuing a **multi-course study hub**: one self-contained HTML page (an Artifact), built by a small Python script from the source files in `study-hub/`. This git repo is the source of truth, and the course files (lectures, assignments, past exams) are in the same repo at the top level. It turns university lectures into **interactive visual stories**, in **Egyptian colloquial Arabic with every technical term in English**, and every lecture is enriched with ideas from **the assignments, the assigned references (book/papers) and past exams**, not only the slides.
 
 The user is an Egyptian CS/AI student studying for midterms. The page already has: RL L1–L3, Speech Recognition L1–L3, Circuits L2. Your job each time: add the next lecture (or fix/extend existing ones) **in exactly the same way and quality**, then verify, rebuild and publish.
 
-First read this whole prompt, then `ls` the kit and skim `hub/shell.js`, `hub/helpers.js`, `hub/s3.html` + `hub/s3.js` (best example of a lecture) and `hub/x_s3.html` (example of the book/exam scene). When done, reply with **5 lines max**: what you understood, what exists, and ask which lecture to build and where the user's course files are. Do not start building until told.
+First read this whole prompt, then `ls study-hub` and the repo root (course folders: `Circuits/`, `NIC/`, `RL/DSAI-402-RL-main/`, `Speech Recognition/DSAI-456-Speech-main/`, `Exam Schedule.pdf`; past-exam PDFs/photos are inside the course folders), then read `study-hub/STATE.md` and skim `study-hub/hub/shell.js`, `hub/helpers.js`, `hub/s3.html` + `hub/s3.js` (best example of a lecture) and `hub/x_s3.html` (example of the book/exam scene). When done, reply with **5 lines max**: what you understood, what exists, and ask which lecture to build and where the user's course files are. Do not start building until told (but offer to run the section 0b first run).
 
-## 1. What is in the kit
+## 0b. First run only: clone the artifact, then build on the clone
+
+The original artifact (owner's, link-shared, version 7): **https://claude.ai/artifact/19gDyFRB1ovQ2uRGfoQUBc**. You cannot edit someone else's artifact, so "cloning" means: rebuild the identical page from this repo, publish it as **your own artifact**, and from then on build only on that clone. Check `study-hub/STATE.md`: if it already has a *Clone URL*, skip this section and use that URL for every publish.
+
+1. `cd study-hub && python build_hub.py` writes `out/study-hub.html`. This has **the same content** as the original and equals the committed `out/study-hub.html` (verified when the kit was made). Then `python tools/check_all.py` (every view must be OK).
+2. Optional drift check: `Artifact read` the original URL. For an artifact you don't own it returns only a summary. If it lists lectures that are not in `study-hub/hub/`, the owner published something newer than this repo snapshot: tell the user to `git pull` (or ask the owner to push). Don't invent the missing lectures.
+3. **Publish the clone:** Artifact tool, `file_path` = `study-hub/out/study-hub.html`, **no `url`** (this creates a new artifact owned by you), title "مكتبة المذاكرة", icon `book`, and `files` = every image in `study-hub/hub/img/` as `{"img/<name>.webp": "<absolute path>"}`. Open the result and confirm the home page, the three course tabs and one lecture render.
+4. Write the new URL into `study-hub/STATE.md` ("Clone URL") and commit it. **From now on every publish passes `url` = that clone URL.** Never create a second artifact and never publish to the original.
+
+## 1. What is in `study-hub/` (all commands below run from inside it)
 
 ```
+STATE.md                  original URL, YOUR clone URL, what is done / next (update + commit after every lecture)
+PROMPT.md                 this prompt
 build_hub.py              run:  python build_hub.py   ->  out/study-hub.html   (always rebuilds from base, safe to rerun)
 base/study-hub-base.html  the original RL page (RL L1-L3, CSS design system, quiz code). NEVER edit by hand; patch via hub/patches.py
 hub/shell.js              COURSES data (home/tabs/course pages), routing, isolate() RTL function
@@ -32,7 +49,7 @@ tools/audit_rtl.js, audit_subsup.js, errors.js   probe scripts (RTL formula-spli
 out/study-hub.html        the last built page (= what is currently published)
 ```
 
-Needs: Python 3, Pillow (`pip install pillow`), Chrome or Edge (else set env `CHROME`), `pypdfium2` + `pypdf` for PDFs.
+Needs: Python 3, Pillow, `pypdfium2` + `pypdf` for PDFs, Chrome or Edge (else set env `CHROME`). `study-hub/work/` is git-ignored scratch (downloaded references, screenshots).
 
 ## 2. Page architecture (do not change without reason)
 
@@ -64,9 +81,9 @@ Needs: Python 3, Pillow (`pip install pillow`), Chrome or Edge (else set env `CH
 
 For each lecture gather, **in this order**, and keep a short coverage map (idea → source → where it appears on the page):
 
-1. **The lecture** (slides: `.md`/`.pdf`/`.pptx`). PDFs full of images/circuits/equations: render pages with `pypdfium2` (`d[i].render(scale=1.5).to_pil()`), tile 4 pages per image and *look at them*; `pdftotext` alone loses formulas and circuit values. Read every slide, including worked examples and the "next week / assignment" slides.
+1. **The lecture** (slides: `.md`/`.pdf`/`.pptx`; in this repo under the course folder, e.g. `RL/DSAI-402-RL-main/lectures/`, `Speech Recognition/DSAI-456-Speech-main/lectures/`, `Circuits/Lecture N.pdf`). PDFs full of images/circuits/equations: render pages with `pypdfium2` (`d[i].render(scale=1.5).to_pil()`), tile 4 pages per image and *look at them*; `pdftotext` alone loses formulas and circuit values. Read every slide, including worked examples and the "next week / assignment" slides.
 2. **The assignment** for that week and **the reading it names** (textbook sections, papers). Use the assignment's tasks as scenes (reproduce the setup, the traps, a model answer, what tool to use).
-3. **The references themselves.** Download the free ones into `work/refs/` (never commit them): Sutton & Barto 2nd ed. PDF (incompleteideas.net), arXiv papers, Jurafsky & Martin SLP3 chapters (`https://web.stanford.edu/~jurafsky/slp3/<n>.pdf`), GitHub READMEs. Extract with `pdftotext`/`pypdf`, grep the exact sections, and pull what the slides *don't* say (exercises, definitions, numbers, rationales). If a paper/book is paywalled (IEEE Rabiner, Nature), **say so and ask the user for the PDF**; until then mark that content clearly as "from my knowledge — verify".
+3. **The references themselves.** Download the free ones into `study-hub/work/refs/` (git-ignored; **never commit books or papers: the repo is public**): Sutton & Barto 2nd ed. PDF (incompleteideas.net), arXiv papers, Jurafsky & Martin SLP3 chapters (`https://web.stanford.edu/~jurafsky/slp3/<n>.pdf`), GitHub READMEs. Extract with `pdftotext`/`pypdf`, grep the exact sections, and pull what the slides *don't* say (exercises, definitions, numbers, rationales). If a paper/book is paywalled (IEEE Rabiner, Nature), **say so and ask the user for the PDF**; until then mark that content clearly as "from my knowledge — verify".
    - Section numbering can differ between editions (e.g. J&M online ed. vs the course's PDF). If the assignment's section number doesn't match the content, say so on the page.
 4. **Past exams** — look for exam PDFs and **photos** (WhatsApp images of exam papers, handwritten answers). Read every one (Read tool on images). Extract each question; reproduce it with its original wording in a `.qen` box, make it interactive when it is numeric, and give a worked solution. Check which course/semester each belongs to. Also read announcements about exam coverage (`.eml`, Moodle posts) and `Exam Schedule.pdf` for dates.
 5. **Homework sheets + model answers** (Circuits sheets etc.): solve them all, crop the original figures from the PDF (`hub/img/`), and follow the doctor's model answer.
@@ -108,10 +125,12 @@ For each lecture gather, **in this order**, and keep a short coverage map (idea 
 3. **Link it in:** `open:true` + a good `q` question line and `chips` in `hub/shell.js`; add the previous lecture's end-bar link to the new one (patch if needed); add "جه في امتحان" tags in `patches.py` (`TAGS` list: scene id, label, target extras scene) for scenes whose idea appeared in an exam.
 4. **Build:** `python build_hub.py` (it asserts anchors; fix errors before continuing).
 5. **Verify:** `python tools/check_all.py` (all views must be OK); screenshot **every new scene** with `tools/shot.py <id> 1200 <tall>` and *look at the images* (layout, overlaps, RTL, dark/light via the OS theme, phone width 500). Probe numbers with `probe.py` and check them against the source. Run both audits. Fix, rebuild, re-shoot until clean. Also click through interactions logically (e.g. extreme slider values).
-6. **Publish** with the Artifact tool: `file_path` = `out/study-hub.html`; on the first publish give a title (name, 2–4 words) and icon; for later versions pass the same `url` (the user keeps one link). Publish the images with the `files` map: `{"img/<name>.webp": "<absolute path to hub/img/<name>.webp>"}` (list every image that is new). The page references them as `img/<name>.webp`.
-7. **Report** (see section 9) and **save a handoff note** in the project (or Claude memory) with: lectures done/next, new sources downloaded, open issues. Keep notes factual and short.
+6. **Publish** with the Artifact tool: `file_path` = `study-hub/out/study-hub.html`, `url` = **your clone URL from STATE.md**. Publish the images with the `files` map: `{"img/<name>.webp": "<absolute path to hub/img/<name>.webp>"}` (list every image that is new). The page references them as `img/<name>.webp`.
+7. **Update `study-hub/STATE.md`** (lectures done/next, published version, open issues; facts only), **commit on a branch** (rules below), then **report** (section 9).
 
-**Do not:** edit `out/study-hub.html` by hand; add narration/audio; copy long text from slides (re-explain in Egyptian Arabic); put API keys or private files in the page; publish without screenshots; claim something was verified when it wasn't.
+**Git rules:** one branch per lecture (`git switch -c lecture/<id>`). Commit `study-hub/hub/*`, `hub/img/*`, `out/study-hub.html` and `STATE.md`, so the repo always rebuilds to exactly what is published. Never commit `work/`, downloaded books/papers, or anything private. **Do not push to `main`, open PRs, or touch the original artifact unless the user explicitly asks.** If the user has no push rights on `origin`, suggest `gh repo fork --remote` first. If `out/study-hub.html` differs from a fresh `python build_hub.py`, rebuild and mention it.
+
+**Do not:** edit `out/study-hub.html` by hand (it is generated); add narration/audio; copy long text from slides (re-explain in Egyptian Arabic); put API keys or private files in the page; publish without screenshots; claim something was verified when it wasn't.
 
 ## 8. Current status and what is still missing (check the page before assuming)
 

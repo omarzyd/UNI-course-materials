@@ -1,0 +1,308 @@
+<article class="chapter" id="ch-s3" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">SPEECH · LECTURE 3 · SPECTRAL FRONT END</span>
+      <h2>من موجة لـ features يفهمها الـ model</h2>
+      <p>في Lecture 2 شفنا الـ spectrogram كصورة جاهزة. النهارده هنبنيه بإيدنا خطوة بخطوة، وبعدين نكمّل لحد الـ log-mel والـ MFCC، اللي هما الـ input الحقيقي للـ models. كل مشهد بيضيف خطوة واحدة على الـ pipeline.</p>
+    </div>
+
+    <section class="scene" id="s3-1" data-t="الـ pipeline">
+      <div class="sh"><span class="n">1</span><h3>الحكاية لحد دلوقتي، ورايحين فين</h3></div>
+      <ul class="clean">
+        <li>الكلام = 16,000 رقم في الثانية، وبنقطّعه لـ frames عشان هو <b>non-stationary</b>.</li>
+        <li>الـ spectrogram بيورّينا الـ formants والـ bursts والـ silence في صورة واحدة.</li>
+        <li>السؤال النهارده: الصورة دي <b>بتتحسب</b> إزاي؟ وإيه اللي بندّيه للـ model بدل الـ samples الخام؟</li>
+      </ul>
+      <p class="small">ده الطريق اللي هنمشيه. دوس على أي خطوة تروح لمشهدها:</p>
+      <div class="pipe" id="s3pipe">
+        <span data-go="s3-6" role="button" tabindex="0">waveform</span><i>→</i><span data-go="s3-6" role="button" tabindex="0">frame</span><i>→</i><span data-go="s3-7" role="button" tabindex="0">window</span><i>→</i><span data-go="s3-3" role="button" tabindex="0">|DFT|²</span><i>→</i><span data-go="s3-12" role="button" tabindex="0">mel filterbank</span><i>→</i><span data-go="s3-13" role="button" tabindex="0">log</span><i>→</i><span data-go="s3-14" role="button" tabindex="0">DCT (MFCC)</span>
+      </div>
+      <div class="note"><b>الجملة اللي هنمشي بيها</b>المحاضرة بتمشي بأول 2 ثانية من جملة في LJ Speech: <span class="m">2 s × 16,000 = 32,000</span> sample. وأي رقم هنحسبه (198 frame، و257 bin، و80 channel) جاي من الجملة دي.</div>
+      <p class="bridge">أول حاجة: ليه أصلاً نقدر نشوف الصوت كـ frequencies؟</p>
+    </section>
+
+    <section class="scene" id="s3-2" data-t="مجموع sines">
+      <div class="sh"><span class="n">2</span><h3>أي موجة = مجموع sines</h3></div>
+      <p class="lead">فكرة <b>Fourier</b>: أي signal ممكن تتكتب كمجموع sine waves، كل واحدة ليها frequency وamplitude وphase. والـ <b>spectrum</b> هو قايمة بالـ frequencies الموجودة وقوة كل واحدة. يعني نفس الـ signal، بس بنوصفها بطريقة تانية.</p>
+      <div class="two">
+        <div id="s3sum"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="ctl"><label for="s3a1">200 Hz</label><input type="range" id="s3a1" min="0" max="1" step="0.05" value="1"><output id="s3a1O"></output></div>
+          <div class="ctl"><label for="s3a2">600 Hz</label><input type="range" id="s3a2" min="0" max="1" step="0.05" value="0.5"><output id="s3a2O"></output></div>
+          <div class="ctl"><label for="s3a3">1000 Hz</label><input type="range" id="s3a3" min="0" max="1" step="0.05" value="0.3"><output id="s3a3O"></output></div>
+          <div id="s3sumSp"></div>
+          <p class="small">فوق: الـ waveform (الوقت). تحت: الـ spectrum (الـ frequency). الاتنين نفس المعلومة.</p>
+        </div>
+      </div>
+      <p class="bridge">طب لو معانا الموجة بس، نطلّع منها الـ spectrum ده إزاي؟ ده شغل الـ DFT.</p>
+    </section>
+
+    <section class="scene" id="s3-3" data-t="الـ DFT">
+      <div class="sh"><span class="n">3</span><h3>الـ DFT: موجة اختبار بتسأل سؤال</h3></div>
+      <div class="mb">X[k] = Σ<sub>n=0</sub><sup>N−1</sup> x[n] · e<sup>−j2πkn/N</sup></div>
+      <p class="lead">اقراها كده: <span class="m">x[n]</span> هي الـ frame (فيها <span class="m">N</span> sample)، و<span class="m">e<sup>−j2πkn/N</sup></span> هي <b>probe wave</b> بتلف <span class="m">k</span> مرة جوه الـ frame. اضرب الاتنين sample sample واجمع. لو الـ frame فيها الـ frequency دي، الضرب بيطلع في نفس الاتجاه، والمجموع بيكبر. لو مش فيها، الموجب والسالب بيلغوا بعض.</p>
+      <div class="two">
+        <div id="s3dft"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <p class="small">الـ frame فيها 3 cycles قوية و7 cycles أضعف (<span class="m">N = 32</span>).</p>
+          <div class="ctl"><label for="s3k">الـ probe <span class="m">k</span></label><input type="range" id="s3k" min="0" max="16" step="1" value="3"><output id="s3kO"></output></div>
+          <div class="readout" id="s3dftR"></div>
+          <div id="s3dftSp"></div>
+          <p class="small" id="s3dftMsg"></p>
+        </div>
+      </div>
+      <p class="small"><span class="m">|X[k]|</span> = قد إيه الـ frequency دي موجودة. والـ probe الحقيقي complex (cos و sin مع بعض)، فالـ phase ما بيفرقش. هنا بنرسم جزء الـ cos بس عشان الصورة تبقى أوضح.</p>
+      <p class="bridge">الحسبة دي لكل <span class="m">k</span> بتاخد وقت. فيه طريقة أسرع بكتير.</p>
+    </section>
+
+    <section class="scene" id="s3-4" data-t="FFT والـ bins">
+      <div class="sh"><span class="n">4</span><h3>الـ FFT، والـ bins بالأرقام</h3></div>
+      <div class="two">
+        <div class="panel">
+          <h4>نفس النتيجة، أسرع بكتير</h4>
+          <p class="small">الـ <b>FFT</b> بيحسب نفس الـ DFT بالظبط، بس في <span class="m">O(N log N)</span> بدل <span class="m">O(N²)</span>. والـ radix-2 FFT محتاج <span class="m">N</span> تبقى power of 2.</p>
+          <div class="ctl"><label for="s3N">N</label><input type="range" id="s3N" min="6" max="12" step="1" value="9"><output id="s3NO"></output></div>
+          <div id="s3cost"></div>
+        </div>
+        <div class="panel">
+          <h4>الـ zero-padding</h4>
+          <p class="small">الـ frame 25 ms عند 16 kHz يعني <span class="m">L = 400</span> sample. أقرب power of 2 فوقها هي <span class="m">N = 2<sup>9</sup> = 512</span>، فبنكمّل بـ <b>112 صفر</b>. (Whisper بيستخدم <span class="m">N = 400</span> على طول.)</p>
+          <div class="zp" dir="ltr"><span style="flex:400">400 real samples</span><span style="flex:112">112 zeros</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>الـ bins: كل bin بيمثل frequency قد إيه؟</h4>
+        <div class="mb">bin k ↔ k · f<sub>s</sub> / N   ·   spacing = f<sub>s</sub> / N   ·   bins we keep = N/2 + 1</div>
+        <div class="grid2">
+          <div class="ctl"><label for="s3fs"><span class="m">f<sub>s</sub></span></label><select id="s3fs" class="txt" style="grid-column:2 / -1"><option>8000</option><option selected>16000</option><option>22050</option><option>44100</option></select></div>
+          <div class="ctl"><label for="s3NN">N</label><select id="s3NN" class="txt" style="grid-column:2 / -1"><option>256</option><option selected>512</option><option>1024</option><option>2048</option></select></div>
+          <div class="ctl"><label for="s3kk">bin <span class="m">k</span></label><input type="range" id="s3kk" min="0" max="256" value="32"><output id="s3kkO"></output></div>
+        </div>
+        <div class="readout" id="s3binR"></div>
+        <p class="small">ليه <span class="m">N/2 + 1</span> بس؟ عشان الـ signal real، فالنص التاني من الـ bins صورة في المراية من الأول. بنحتفظ بـ <span class="m">k = 0 … N/2</span>، يعني من 0 لحد <span class="m">f<sub>s</sub>/2</span>.</p>
+      </div>
+      <p class="bridge">تمام، نعمل DFT للجملة كلها مرة واحدة وخلاص؟</p>
+    </section>
+
+    <section class="scene" id="s3-5" data-t="ليه مش DFT واحد؟">
+      <div class="sh"><span class="n">5</span><h3>ليه مش DFT واحد للجملة كلها؟</h3></div>
+      <p class="lead">بص على الـ signal دي: تحت الأول وبعدين فوق، والتانية العكس. الـ <b>magnitude spectrum</b> بتاعهم:</p>
+      <div class="two">
+        <div id="s3whole"></div>
+        <div id="s3wholeSp"></div>
+      </div>
+      <p>نفس الـ spectrum بالظبط! الـ magnitude بتقول <b>أنهي</b> frequencies موجودة، بس مش <b>إمتى</b>. التوقيت مستخبي في الـ phase، والـ phase إحنا بنرميه. ولو عملناها على جملة كاملة، كل الـ vowels هتتخلط في بعض.</p>
+      <div class="two">
+        <div class="panel"><h4>Spectrogram: low ثم high</h4><canvas class="heat" id="s3cvA" width="300" height="110"></canvas></div>
+        <div class="panel"><h4>Spectrogram: high ثم low</h4><canvas class="heat" id="s3cvB" width="300" height="110"></canvas></div>
+      </div>
+      <p>الحل: <b>spectrum لكل frame قصيرة</b>، الـ signal جواها شبه ثابتة. وساعتها الترتيب يبان.</p>
+      <p class="bridge">نقطّع إزاي بالظبط؟ بالأرقام.</p>
+    </section>
+
+    <section class="scene" id="s3-6" data-t="الـ framing بالأرقام">
+      <div class="sh"><span class="n">6</span><h3>الـ framing بالأرقام: frame length وhop</h3></div>
+      <div class="mb">T = 1 + ⌊(N<sub>tot</sub> − L) / H⌋</div>
+      <div class="two">
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="ctl"><label for="s3dur">المدة</label><input type="range" id="s3dur" min="0.5" max="10" step="0.5" value="2"><output id="s3durO"></output></div>
+          <div class="ctl"><label for="s3Lm">Frame <span class="m">L</span></label><input type="range" id="s3Lm" min="10" max="50" step="5" value="25"><output id="s3LmO"></output></div>
+          <div class="ctl"><label for="s3Hm">Hop <span class="m">H</span></label><input type="range" id="s3Hm" min="5" max="25" step="5" value="10"><output id="s3HmO"></output></div>
+          <p class="hint">عند <span class="m">f<sub>s</sub> = 16 kHz</span></p>
+        </div>
+        <div class="panel"><ol class="steps" id="s3frSteps"></ol></div>
+      </div>
+      <p class="bridge">قطّعنا. بس طريقة القطع نفسها ليها تمن مستخبي.</p>
+    </section>
+
+    <section class="scene" id="s3-7" data-t="Windowing والـ leakage">
+      <div class="sh"><span class="n">7</span><h3>الـ windowing والـ spectral leakage</h3></div>
+      <p class="lead">قطع الـ frame = ضرب الـ signal في <b>window</b> قيمته صفر بره الـ frame: <span class="m">y[n] = w[n] · s[n]</span>. أبسط واحد هو الـ <b>rectangular</b>: سيب الـ samples زي ما هي جوه الـ frame، وصفّر الباقي. ده اللي كنا بنعمله من غير ما ناخد بالنا.</p>
+      <div class="note warn"><b>التمن المستخبي</b>الـ DFT بيعامل الـ frame كأنها period واحدة من signal بتكرر نفسها للأبد. لو الطرفين مش راكبين على بعض، النسخ المتكررة بيبقى بينها <b>قفزة</b>.</div>
+      <div class="seg" id="s3win" role="group" aria-label="الـ window">
+        <button type="button" data-w="rect" aria-pressed="true">Rectangular</button>
+        <button type="button" data-w="hann" aria-pressed="false">Hann</button>
+        <button type="button" data-w="hamming" aria-pressed="false">Hamming</button>
+      </div>
+      <div class="ctl"><label for="s3cyc">cycles جوه الـ frame</label><input type="range" id="s3cyc" min="2" max="6" step="0.1" value="3.5"><output id="s3cycO"></output></div>
+      <div class="two">
+        <div><h4>الـ frame متكررة 3 مرات (زي ما الـ DFT شايفها)</h4><div id="s3tile"></div></div>
+        <div><h4><span class="m">|X[k]|</span> بالـ dB</h4><div id="s3leak"></div></div>
+      </div>
+      <p class="small" id="s3leakMsg"></p>
+      <p>الـ bins بتقع عند عدد cycles <b>صحيح</b>: الـ bin رقم <span class="m">k</span> = بالظبط <span class="m">k</span> cycles. خلّي الـ slider على 3: النسخ بتركب على بعض ناعم، فيطلع spike واحد نضيف. وحطه على 3.5: يحصل قفزة، والقفزة محتاجة frequencies كتير عشان توصفها، فالطاقة <b>بتسرّب (leaks)</b> في كل الـ bins. جرّب بعدها Hann.</p>
+      <p class="bridge">الـ Hann والـ Hamming بيعملوا إيه بالظبط؟</p>
+    </section>
+
+    <section class="scene" id="s3-8" data-t="Hamming وHann">
+      <div class="sh"><span class="n">8</span><h3>شكل الـ windows: Hamming وHann</h3></div>
+      <p class="lead">بيخلّوا الـ frame تقرّب للصفر عند الطرفين، فالنسخ تقابل بعض (تقريباً) من غير قفزة:</p>
+      <div class="mb">w<sub>Hamming</sub>[n] = 0.54 − 0.46 cos(2πn / L)   ·   w<sub>Hann</sub>[n] = 0.5 − 0.5 cos(2πn / L)</div>
+      <p class="small">لـ <span class="m">0 ≤ n ≤ L−1</span> (ده الـ periodic form زي librosa، وفيه toolkits بتقسم على <span class="m">L−1</span>).</p>
+      <div class="two">
+        <div><h4>الشكل في الوقت</h4><div id="s3wshape"></div></div>
+        <div><h4>الـ spectrum بتاع الـ window نفسه</h4><div id="s3wspec"></div></div>
+      </div>
+      <div class="readout" id="s3wR"></div>
+      <ul class="clean small">
+        <li><b>المكسب</b>: الـ side lobes بتنزل جامد، فالـ leakage يقلّ.</li>
+        <li><b>التمن</b>: الـ main lobe بيعرض، فالـ frequency بتبقى مغبّشة شوية.</li>
+        <li>الـ Hamming ما بيوصلش للصفر عند الأطراف (<span class="m">w[0] = 0.08</span>)، بس الـ side lobe الأولى عنده أوطى.</li>
+      </ul>
+      <p class="bridge">دلوقتي عندنا كل القطع: frame وwindow وDFT. نركّبهم مع بعض.</p>
+    </section>
+
+    <section class="scene" id="s3-9" data-t="الـ STFT">
+      <div class="sh"><span class="n">9</span><h3>الـ STFT خطوة بخطوة</h3></div>
+      <div class="mb">X[m, k] = Σ<sub>n=0</sub><sup>L−1</sup> w[n] · x[mH + n] · e<sup>−j2πkn/N</sup></div>
+      <ol class="steps">
+        <li><span>خد <span class="m">L</span> sample تبدأ من <span class="m">mH</span>.</span></li>
+        <li><span>اضربهم في الـ window <span class="m">w[n]</span>.</span></li>
+        <li><span>كمّل بأصفار لحد <span class="m">N</span> واعمل DFT.</span></li>
+        <li><span>اتحرك <span class="m">H</span> sample قدّام، وكرر.</span></li>
+      </ol>
+      <div class="panel">
+        <div class="row" style="justify-content:space-between"><div class="row"><button class="btn" id="s3st1">الـ frame الجاية</button><button class="btn ghost" id="s3stAll">كمّل للآخر</button><button class="btn ghost" id="s3st0">من الأول</button></div><span class="readout" id="s3stR"></span></div>
+        <div id="s3stWave"></div>
+        <div class="two" style="margin-top:6px">
+          <div><h4>الـ spectrogram بيتبني</h4><canvas class="heat" id="s3stCv" width="490" height="180"></canvas><p class="xs small">الـ x = رقم الـ frame (الوقت)، والـ y = الـ frequency من 0 لـ 4 kHz.</p></div>
+          <div><h4>spectrum الـ frame الحالية (dB)</h4><div id="s3stSp"></div></div>
+        </div>
+        <p class="small">الـ signal: chirp طالع، وبعده نغمتين ثابتين، وبعده noise زي الـ <span class="ltr">/s/</span>. عند <span class="m">f<sub>s</sub> = 8 kHz</span>: <span class="m">L = 200</span> (25 ms)، و<span class="m">H = 80</span> (10 ms)، و<span class="m">N = 256</span>.</p>
+      </div>
+      <p>الناتج <b>complex matrix</b>: صف لكل frame، وعمود لكل bin.</p>
+      <p class="bridge">ناخد الـ magnitude ونحطه في صورة: ده الـ spectrogram. وفيه قرار لازم تاخده.</p>
+    </section>
+
+    <section class="scene" id="s3-10" data-t="Spectrogram والـ trade-off">
+      <div class="sh"><span class="n">10</span><h3>الـ spectrogram، والـ time–frequency trade-off</h3></div>
+      <div class="grid2">
+        <div class="card"><b>من الـ STFT للـ spectrogram</b><span class="small">خد الـ magnitude وحوّله لـ dB عشان الأجزاء الهادية تبان: <span class="m">S[m,k] = 20 log<sub>10</sub>|X[m,k]|</span>. الـ spectrogram = spectrum لكل frame، جنب بعض.</span></div>
+        <div class="card"><b>الـ shape</b><span class="small"><span class="m">T × (N/2 + 1)</span>. للجملة اللي معانا: <span class="m">198 × 257</span>.</span></div>
+      </div>
+      <p class="lead"><b>ما ينفعش تاخد الاتنين.</b> window قصير يعني الوقت واضح والـ frequency مغبّشة، وwindow طويل العكس. نفس الـ signal ونفس الـ hop، والفرق في طول الـ window بس:</p>
+      <div class="seg" id="s3tf" role="group" aria-label="طول الـ window">
+        <button type="button" data-l="5" aria-pressed="false">5 ms</button>
+        <button type="button" data-l="25" aria-pressed="true">25 ms</button>
+        <button type="button" data-l="100" aria-pressed="false">100 ms</button>
+      </div>
+      <canvas class="heat" id="s3tfCv" width="900" height="220"></canvas>
+      <div class="readout" id="s3tfR"></div>
+      <p class="small" id="s3tfMsg"></p>
+      <p class="bridge">الـ spectrogram فيه 257 bin بالـ Hz. بس ودن البني آدم مش بتسمع بالـ Hz.</p>
+    </section>
+
+    <section class="scene" id="s3-11" data-t="الـ mel scale">
+      <div class="sh"><span class="n">11</span><h3>ليه mel؟ الـ mel scale</h3></div>
+      <p class="lead">إحساسنا بالـ pitch تقريباً <b>linear تحت 1 kHz</b> و<b>logarithmic فوقها</b>. يعني من 200 لـ 300 Hz نقلة كبيرة، ومن 6200 لـ 6300 Hz نقلة صغيرة جداً. الـ <b>mel scale</b> بيخلّي الخطوات اللي إحساسنا بيها واحد تبقى على مسافات واحدة:</p>
+      <div class="mb">mel(f) = 1127 · ln(1 + f / 700)   ·   f = 700 · (e<sup>mel / 1127</sup> − 1)</div>
+      <div class="two">
+        <div id="s3mel"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="seg" id="s3melP" role="group" aria-label="أمثلة">
+            <button type="button" data-p="0" aria-pressed="true">200 → 300 Hz</button>
+            <button type="button" data-p="1" aria-pressed="false">6200 → 6300 Hz</button>
+          </div>
+          <div class="ctl"><label for="s3m1">f₁</label><input type="range" id="s3m1" min="0" max="8000" step="50" value="200"><output id="s3m1O"></output></div>
+          <div class="ctl"><label for="s3m2">f₂</label><input type="range" id="s3m2" min="0" max="8000" step="50" value="300"><output id="s3m2O"></output></div>
+          <div class="readout" id="s3melR"></div>
+          <p class="small">ثبّت <span class="m">Δf = 100 Hz</span> وحرّكهم لفوق: الـ <span class="m">Δmel</span> بيصغر. ومن الأرقام المهمة: <span class="m">1000 Hz ≈ 1000 mel</span>، و<span class="m">8000 Hz ≈ 2840 mel</span>.</p>
+        </div>
+      </div>
+      <p class="bridge">نستخدم الـ scale ده إزاي على الـ 257 bin؟ بـ filterbank.</p>
+    </section>
+
+    <section class="scene" id="s3-12" data-t="الـ mel filterbank">
+      <div class="sh"><span class="n">12</span><h3>الـ mel filterbank: من 257 bin لـ M channel</h3></div>
+      <ol class="steps">
+        <li><span>اختار <span class="m">M</span> channels. حط <span class="m">M + 2</span> نقطة <b>متساوية المسافات في الـ mel</b> من 0 لـ 8000 Hz (يعني من 0 لـ 2840 mel)، وبعدين رجّعهم Hz.</span></li>
+        <li><span>الـ filter رقم <span class="m">m</span> = <b>مثلث</b> من النقطة <span class="m">m</span> لحد النقطة <span class="m">m+2</span>، وقيمته 1 عند النقطة <span class="m">m+1</span>.</span></li>
+        <li><span>كل channel بتجمع الـ power اللي تحت المثلث بتاعها: <span class="m">E<sub>m</sub>[t] = Σ<sub>k</sub> H<sub>m</sub>[k] · |X[t,k]|²</span>.</span></li>
+      </ol>
+      <div class="ctl"><label for="s3M">عدد الـ channels <span class="m">M</span></label><input type="range" id="s3M" min="4" max="40" step="1" value="12"><output id="s3MO"></output></div>
+      <div id="s3fb"></div>
+      <div class="readout" id="s3fbR"></div>
+      <p class="small" id="s3fbPts"></p>
+      <div class="note"><b>لكل الـ frames مرة واحدة</b>ضرب matrix واحد: <span class="m" id="s3fbMat"></span>. وخد بالك: المثلثات عرضها واحد في الـ mel، فبتطلع <b>ضيقة عند الـ Hz الواطية، وعريضة عند العالية</b>.</div>
+      <p class="bridge">كده الـ frequency axis بقى perceptual. فاضل الـ energy axis.</p>
+    </section>
+
+    <section class="scene" id="s3-13" data-t="الـ log">
+      <div class="sh"><span class="n">13</span><h3>الـ log: اتنين scales على محورين مختلفين</h3></div>
+      <div class="grid2">
+        <div class="card"><b class="cA">mel</b><span class="small">بيعدّل محور الـ <b>frequency</b> (الـ pitch).</span></div>
+        <div class="card"><b class="cG">dB / log</b><span class="small">بيضغط محور الـ <b>energy</b> (الـ loudness): <span class="m">log(E<sub>m</sub>[t] + ε)</span>، أو <span class="m">10 log<sub>10</sub> E<sub>m</sub>[t]</span>. والـ <span class="m">ε</span> عشان ما نعملش <span class="m">log 0</span>.</span></div>
+      </div>
+      <p class="lead"><b>الـ dynamic range</b>: الـ vowel ممكن تكون فيها power أكتر من fricative ضعيف بحوالي <b>30 dB</b>، يعني <b>1000 مرة</b>. على scale خطي، أعلى حتت بس هي اللي تبان:</p>
+      <div class="seg" id="s3lg" role="group" aria-label="الـ scale">
+        <button type="button" data-s="lin" aria-pressed="true">linear</button>
+        <button type="button" data-s="log" aria-pressed="false">log (dB)</button>
+      </div>
+      <canvas class="heat" id="s3lgCv" width="900" height="200"></canvas>
+      <p class="small" id="s3lgMsg"></p>
+      <p class="bridge">mel + log = الـ input الـ standard. وفيه نسخة أصغر منه كمان.</p>
+    </section>
+
+    <section class="scene" id="s3-14" data-t="Log-mel والـ MFCC">
+      <div class="sh"><span class="n">14</span><h3>الـ log-mel، وبعدين الـ MFCC</h3></div>
+      <div class="pipe"><span>waveform</span><i>→</i><span>frame</span><i>→</i><span>window</span><i>→</i><span>|DFT|²</span><i>→</i><span>mel filterbank</span><i>→</i><span class="on">log</span></div>
+      <ul class="clean">
+        <li>الناتج اسمه <b>log-mel spectrogram</b>: vector فيه 80 (أو 128) channel لكل 10 ms.</li>
+        <li>قبل الـ network بنعمل <b>normalization</b>: mean صفر وvariance واحد (لكل جملة أو على الـ training set كله)، أو rescaling ثابت لحوالي <span class="m">[−1, 1]</span> زي Whisper.</li>
+        <li>الـ encoders اللي جاية (CTC، وConformer، وwav2vec 2.0) بتبدأ من ده، أو بتتعلم حاجة شبهه من الـ waveform على طول.</li>
+      </ul>
+      <h4>الـ MFCC: خلّي الـ envelope وارمي الـ pitch</h4>
+      <p>افتكر الـ source–filter من Lecture 2: الـ spectrum بتاع الـ vowel = <b>ripple</b> سريع من الـ vocal folds (الـ pitch) فوق <b>envelope</b> ناعم من الـ vocal tract. والـ phone نفسه موجود في الـ envelope. الـ <b>MFCC</b> بتوصف شكل كل log-mel frame بعدد صغير من الأرقام: كفاية للـ envelope، وقليل على الـ ripple.</p>
+      <div class="two">
+        <div id="s3mf"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="ctl"><label for="s3K">عدد الـ coefficients</label><input type="range" id="s3K" min="1" max="64" step="1" value="13"><output id="s3KO"></output></div>
+          <p class="small" id="s3mfMsg"></p>
+          <div class="readout"><span class="box">static <b>13</b></span><span class="box">+ Δ <b>13</b></span><span class="box">+ ΔΔ <b>13</b></span><span class="box">= <b>39</b> لكل frame</span></div>
+        </div>
+      </div>
+      <div class="tblwrap"><table class="cmp">
+        <tr><th></th><th>Log-mel</th><th>MFCC</th></tr>
+        <tr><td>الأبعاد</td><td>80–128</td><td>13 (أو 39 مع Δ وΔΔ)</td></tr>
+        <tr><td>التفاصيل</td><td>كل الـ channels، والـ network يتعلم يحتفظ بإيه</td><td>الـ envelope الناعم بس</td></tr>
+        <tr><td>الـ correlation</td><td>عالي بين الـ channels اللي جنب بعض</td><td>واطي، فمناسب للـ diagonal-covariance GMMs</td></tr>
+        <tr><td>بيستخدموه فين</td><td>الـ neural encoders (Conformer، Whisper)</td><td>GMM-HMM، والـ systems الصغيرة أو الـ low-resource</td></tr>
+      </table></div>
+      <p class="src">تفاصيل الـ MFCC (cepstrum، وDCT، وdeltas) مطلوبة قراية في J&amp;M Ch. 15.6.</p>
+      <p class="bridge">نشوف الـ pipeline كله على جملة واحدة.</p>
+    </section>
+
+    <section class="scene" id="s3-15" data-t="الـ pipeline كله">
+      <div class="sh"><span class="n">15</span><h3>الـ pipeline كله على جملة واحدة</h3></div>
+      <figure class="fig"><img src="img/lec3_stages.webp" alt="six stages from waveform to MFCC with deltas" loading="lazy"><figcaption>من المحاضرة: الـ waveform، وبعدين الـ |STFT| بالـ dB، والـ mel energies، والـ log-mel، والـ MFCC، والـ MFCC مع Δ وΔΔ.</figcaption></figure>
+      <div class="ctl"><label for="s3pd">مدة الجملة</label><input type="range" id="s3pd" min="0.5" max="10" step="0.5" value="2"><output id="s3pdO"></output></div>
+      <div class="pipe" id="s3shapes"></div>
+      <p class="bridge">آخر مشهد: اختبر نفسك.</p>
+    </section>
+
+    <section class="scene" id="s3-16" data-t="اختبر نفسك">
+      <div class="sh"><span class="n">16</span><h3>الخلاصة، واختبر نفسك</h3></div>
+      <div class="cheat">
+        <div class="card"><b>DFT</b><span class="small">قد إيه كل frequency موجودة في الـ frame.</span></div>
+        <div class="card"><b>Frames</b><span class="small"><span class="m">L = 25 ms</span> و <span class="m">H = 10 ms</span>.</span></div>
+        <div class="card"><b>Window</b><span class="small">Hamming أو Hann بيشيلوا القفزة اللي عند الطرف، فالـ leakage يقلّ.</span></div>
+        <div class="card"><b>STFT</b><span class="small">DFT لكل frame بعد الـ window. والـ spectrogram = الـ magnitude بالـ dB.</span></div>
+        <div class="card"><b>Mel + log</b><span class="small">الـ mel للـ frequency، والـ log للـ energy. والناتج log-mel.</span></div>
+        <div class="card"><b>MFCC</b><span class="small">الـ envelope بس، 13 رقم (39 مع Δ). وcorrelation أقل.</span></div>
+      </div>
+      <h4>رتّب الخطوات (دوس بالترتيب)</h4>
+      <div class="order" id="s3ord"></div>
+      <div class="picked" id="s3ordP"></div>
+      <div class="row"><button class="btn ghost" id="s3ord0">من الأول</button><span class="small" id="s3ordMsg"></span></div>
+      <h4>أسئلة المحاضرة</h4>
+      <details class="rv"><summary>signal عند 16 kHz، وwindow 25 ms، وhop 10 ms، وFFT 512 نقطة. الـ bin spacing كام؟ وعدد الـ bins؟ وعدد الـ frames في 3 ثواني؟</summary><div class="ans"><p>الـ spacing: <span class="m">16000 / 512 = 31.25 Hz</span>. والـ bins: <span class="m">512/2 + 1 = 257</span>. والـ frames: <span class="m">1 + ⌊(48000 − 400) / 160⌋ = 1 + 297 = 298</span>.</p></div></details>
+      <details class="rv"><summary>ليه بنعمل windowing؟</summary><div class="ans"><p>عشان نقرّب الطرفين للصفر، فالقفزة اللي بين النسخ المتكررة تختفي، والـ spectral leakage يقلّ.</p></div></details>
+      <details class="rv"><summary>الـ 1 kHz بتقع في أنهي bin (16 kHz و<span class="m">N = 512</span>)؟</summary><div class="ans"><p><span class="m">k = f · N / f<sub>s</sub> = 1000 × 512 / 16000 = 32</span>.</p></div></details>
+      <details class="rv"><summary>عايز تفرّق بين نغمتين بينهم 15 Hz. window قصير ولا طويل؟</summary><div class="ans"><p>طويل. الـ frequency resolution تقريباً <span class="m">1/L</span>: لـ 15 Hz محتاج حوالي 67 ms أو أكتر. والتمن إن الـ timing هيتغبّش.</p></div></details>
+      <details class="rv"><summary>الـ spectrogram بتاع 3 ثواني (نفس الإعدادات) الـ shape بتاعه إيه؟ وبعد 80 mel؟ وبعد MFCC مع الـ deltas؟</summary><div class="ans"><p><span class="m">298 × 257</span>، وبعدين <span class="m">298 × 80</span>، وبعدين <span class="m">298 × 39</span>.</p></div></details>
+      <div class="note"><b>Assignment 3: ابني الـ front end</b>اعمل frame وwindow بـ NumPy بس، وراجع عدد الـ frames على القانون. احسب الـ STFT وقارنه بـ <span class="kbd">librosa.stft</span>، وخد بالك إن librosa بترجّع bins × frames، وبتعمل padding لوحدها (استخدم <span class="kbd">center=False</span> و<span class="kbd">n_fft=512</span>). ابني الـ mel filterbank، وبعدين الـ log، وبعدين MFCC بـ 13 coefficient مع Δ وΔΔ. وفي الآخر غيّر طول الـ window ونوعه، واكتب إيه اللي اتغيّر.</div>
+      <div class="endbar"><span class="small">الجاي في Lecture 4: إزاي نـ model الـ sequence بتاعة الـ vectors دي؟ الـ alignment، والـ HMMs، والـ forward algorithm.</span><div class="row"><a class="btn ghost" href="#s2" style="text-decoration:none">→ Lecture 2</a><button class="btn ghost donebtn" data-ch="s3"></button></div></div>
+    </section>
+  </div>
+</article>

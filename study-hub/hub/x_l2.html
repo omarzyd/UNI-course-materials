@@ -1,0 +1,78 @@
+<section class="scene" id="l2-x1" data-t="من الكتاب: S&amp;B 3.3–3.4">
+      <div class="sh"><span class="n">0</span><h3>من الكتاب: Sutton &amp; Barto 3.3 و3.4</h3></div>
+      <p class="lead"><span class="stag hw">Assignment 3</span> بيقول اقرا Chapter 3. دي أهم الحاجات فيه اللي بتكمّل الـ return والـ γ، وتمارين محلولة بنفس أسلوب الامتحان.</p>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B Ex. 3.8</span> احسب الـ returns من الآخر للأول</h4>
+        <div class="qen">Suppose γ = 0.5 and the following sequence of rewards is received: R<sub>1</sub> = −1, R<sub>2</sub> = 2, R<sub>3</sub> = 6, R<sub>4</sub> = 3, R<sub>5</sub> = 2, with T = 5. What are G<sub>0</sub>, G<sub>1</sub>, …, G<sub>5</sub>?</div>
+        <p>الحيلة: ابدأ من الآخر. <span class="m">G<sub>T</sub> = 0</span>، وبعدين <span class="m">G<sub>t</sub> = R<sub>t+1</sub> + γ G<sub>t+1</sub></span>. جرّب بأرقامك:</p>
+        <div class="grid2">
+          <label class="panel" style="display:flex;flex-direction:column;gap:4px"><span class="small">الـ rewards: <span class="m">R<sub>1</sub>, R<sub>2</sub>, …</span></span><input id="xrw" class="txt" dir="ltr" value="-1, 2, 6, 3, 2"></label>
+          <div class="ctl"><label for="xg">γ</label><input type="range" id="xg" min="0" max="1" step="0.05" value="0.5"><output id="xgO"></output></div>
+        </div>
+        <div id="xret"></div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B Ex. 3.9</span> لما الـ rewards ملهاش آخر</h4>
+        <div class="qen">Suppose γ = 0.9 and the reward sequence is R<sub>1</sub> = 2 followed by an infinite sequence of 7s. What are G<sub>1</sub> and G<sub>0</sub>?</div>
+        <ol class="steps">
+          <li><span>من <span class="m">t = 1</span> كل الـ rewards 7: <span class="m">G<sub>1</sub> = 7 + 0.9·7 + 0.9²·7 + … = 7 / (1 − 0.9) = 70</span></span></li>
+          <li><span><span class="m">G<sub>0</sub> = R<sub>1</sub> + γ G<sub>1</sub> = 2 + 0.9 × 70 = 65</span></span></li>
+        </ol>
+        <p class="small">القانون اللي بتستخدمه: <span class="m">Σ<sub>k≥0</sub> γ<sup>k</sup> = 1 / (1 − γ)</span> لما <span class="m">γ &lt; 1</span>. وده بالظبط ليه γ أقل من 1 بتخلّي الـ return محدود في الـ continuing tasks.</p>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B Ex. 3.7</span> robot في متاهة: إيه الغلط؟</h4>
+        <div class="qen">Reward +1 for escaping the maze and 0 at all other times; the task is episodic, γ = 1. After running the agent for a while, it shows no improvement. What is going wrong?</div>
+        <p>أي طريق بيخرج بيدّي نفس الـ return بالظبط: <span class="m">G = 1</span>، سواء خرج في 10 خطوات أو 10,000. يعني إنت ما قلتلوش «اخرج بسرعة». والحل: <b>−1</b> على كل خطوة، أو <span class="m">γ &lt; 1</span>، فالطريق الأقصر يبقى ليه return أعلى.</p>
+        <div class="note"><b>نفس فكرة «الـ reward هو الـ spec»</b>الـ agent بيعمل optimize للي إنت كتبته بالظبط. والكتاب بيقول: الـ reward بيقول <b>عايز توصل لإيه</b>، مش <b>إزاي</b>.</div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B 3.4</span> episodic وcontinuing في نوتيشن واحدة</h4>
+        <div id="xabs"></div>
+        <p>الـ episode اللي بتخلص بنعتبرها بتدخل <b>absorbing state</b>: بتفضل فيه للأبد، وكل الـ rewards بعدها صفر. كده نفس القانون <span class="m">G<sub>t</sub> = Σ γ<sup>k</sup> R<sub>t+k+1</sub></span> بيشتغل للنوعين. والشرط الوحيد: ما ينفعش <span class="m">T = ∞</span> و<span class="m">γ = 1</span> مع بعض.</p>
+        <p class="small"><span class="stag book">Example 3.4</span> الـ pole balancing: لو episodic بـ +1 كل خطوة، يبقى الـ return = عدد الخطوات. ولو continuing بـ −1 عند الوقوع وصفر غير كده، يبقى الـ return = <span class="m">−γ<sup>K</sup></span> (K = عدد الخطوات قبل الوقوع). وفي الحالتين، تفضل واقف أطول يعني return أحسن.</p>
+      </div>
+      <p class="bridge">نطبّق ده على أسئلة امتحانات قبل كده.</p>
+    </section>
+
+    <section class="scene" id="l2-x2" data-t="امتحانات سابقة + Assignment 2">
+      <div class="sh"><span class="n">0</span><h3>من امتحانات سابقة، ومن Assignment 2</h3></div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Midterm · Nov 2025 · Q1 (3 pts)</span><b>MRP: returns من episodes</b></div>
+        <div class="qen">Locations: Home, Bus Stop, Office, Cafe.<br>Episode 1: Home, 0, Bus Stop, −1, Office, 5, Cafe, 2<br>Episode 2: Bus Stop, −2, Office, 3, Cafe, 1, Home, 3<br>(a) Compute G<sub>t</sub> for each state occurrence, γ = 0.8. (b) Estimate v(s). (c) Recompute with γ = 0 and explain the effect of the discount factor.</div>
+        <p class="small">اقرا الـ episode كده: الـ state، وبعدها الـ reward اللي جه بعدها. ابدأ من آخر الـ episode. حرّك γ وشوف الجدول:</p>
+        <div class="ctl"><label for="xq1g">γ</label><input type="range" id="xq1g" min="0" max="1" step="0.1" value="0.8"><output id="xq1gO"></output></div>
+        <div id="xq1"></div>
+        <details class="rv"><summary>الإجابة النموذجية لـ (c)</summary><div class="ans"><p>عند <span class="m">γ = 0</span> الـ return = الـ reward اللي بعدها على طول، يعني الـ agent <b>قصير النظر (myopic)</b>: الـ Bus Stop قيمتها سالبة، مع إنها الطريق للـ Office اللي فيه +5. ومع <span class="m">γ = 0.8</span>، الـ Bus Stop بقت قيمتها موجبة (3.43)، عشان المكافآت الجاية بقت محسوبة. يعني γ بتحدد قد إيه المستقبل بيفرق.</p></div></details>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Final · Jan 2026 · Q6 (2 pts)</span><b>Markov chain: احتمال خطوتين</b></div>
+        <div class="qen">Calculate the probability of transitioning from state A to state C in exactly two steps.</div>
+        <div class="two">
+          <div id="xmc"></div>
+          <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+            <div class="row"><span class="small">من</span><span class="seg" id="xmcF"><button type="button" data-s="0" aria-pressed="true">A</button><button type="button" data-s="1" aria-pressed="false">B</button><button type="button" data-s="2" aria-pressed="false">C</button></span></div>
+            <div class="row"><span class="small">لـ</span><span class="seg" id="xmcT"><button type="button" data-s="0" aria-pressed="false">A</button><button type="button" data-s="1" aria-pressed="false">B</button><button type="button" data-s="2" aria-pressed="true">C</button></span></div>
+            <div id="xmcR"></div>
+          </div>
+        </div>
+        <p class="small">الفكرة: كل الطرق اللي طولها خطوتين، مجموع (احتمال الخطوة الأولى × احتمال التانية). وده نفسه الخانة <span class="m">(P²)<sub>AC</sub></span> في الـ matrix.</p>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag hw">Assignment 2</span> الـ paper response بتاع الأخبار: إجابات نموذجية</h4>
+        <ol class="steps">
+          <li><span><b>الـ terms زي ما الـ paper عرّفها:</b> الـ agent = الـ algorithm (LinUCB) اللي بيختار الخبر. الـ environment = الزوار. الـ state/context = features الزائر مع features كل خبر (<span class="m">x<sub>t,a</sub></span>). الـ action = arm = الخبر اللي يتعرض. الـ reward/payoff = 1 لو حصل click، و0 غير كده. يعني الـ expected reward = الـ CTR.</span></li>
+          <li><span><b>ليه bandit:</b> كل trial مستقلة. الخبر اللي اتعرض مش بيغيّر مين الزائر الجاي ولا الـ context بتاعه. عشان يبقى full RL، لازم الـ action يغيّر الـ state الجاية، زي إن نفس المستخدم يرجع وتجربته تتأثر بالأخبار اللي شافها قبل كده، والـ reward يبقى على الـ session كلها.</span></li>
+          <li><span><b>Limitation في الـ click:</b> الـ click مش رضا. ممكن يكافئ الـ clickbait، وبيتأثر بمكان الخبر في الصفحة (position bias). وكمان مش بيقيس إن الزائر قرا الخبر أو رجع الموقع تاني.</span></li>
+        </ol>
+        <div class="note"><b>فكرة من الـ paper ممكن تتسأل فيها</b>الـ <b>offline evaluation</b> بالـ replay: عندهم logs اتعرض فيها الخبر <b>بشكل عشوائي</b>. بيعدّوا على الـ log، ولما الـ algorithm يختار نفس الخبر اللي اتعرض فعلاً، بياخدوا الـ click ده ويحسبوه. وده unbiased بس عشان الـ logging كان random (i.i.d.). ولو الـ log جه من policy تانية متحيزة، التقييم يبقى متحيز. والنتيجة: LinUCB جاب clicks أكتر بـ 12.5% على أكتر من 33 مليون event.</div>
+      </div>
+      <p class="bridge">في Lecture 3 بنضيف الـ actions، فيبقى عندنا MDP.</p>
+    </section>

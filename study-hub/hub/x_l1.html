@@ -1,0 +1,40 @@
+<section class="scene" id="l1-x1" data-t="القراية والـ assignments">
+      <div class="sh"><span class="n">0</span><h3>من القراية والـ assignments: الـ RL اتنزل في الدنيا فعلاً فين؟</h3></div>
+      <p class="lead">الـ midterm بيغطي <b>كل الـ papers المقررة</b> (إعلان الدكتور على Moodle، 4 نوفمبر). فالمشهد ده بيربط الـ lecture بقراية Assignment 1 و2.</p>
+
+      <div class="blk">
+        <h4><span class="stag paper">قراية Assignment 1</span> Survey of deployed RL systems</h4>
+        <p>الـ survey ده قايمة بتطبيقات RL <b>اتنزلت فعلاً</b>، أو في الطريق إنها تتنزل. شالوا منها الألعاب، والـ robotics اللي اتجربت في simulation بس. وكل تطبيق متصنّف على محورين:</p>
+        <div class="grid2">
+          <div class="card"><b>حالة الـ deployment</b><span class="small">شغال دلوقتي، أو اتنزل مرة على الأقل، أو متخطط له، أو مش معروف.</span></div>
+          <div class="card"><b>الـ approach</b><span class="small">online، أو offline، أو اتدرب في simulator، أو search في simulator، أو اتبنى simulator جزئي من data قديمة.</span></div>
+        </div>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th>التطبيق</th><th>الحالة</th><th>الـ approach</th><th>بيحل شرط «الغلط غالي» إزاي؟</th></tr>
+          <tr><td>DeepThermal: كفاءة الاحتراق في محطات كهربا</td><td>شغال (4 محطات)</td><td>Offline</td><td>بيتعلم من data متسجّلة، من غير ما يجرّب على المحطة.</td></tr>
+          <tr><td>Google و Loon: balloons في الـ stratosphere</td><td>شغال</td><td>simulator جزئي من data رياح قديمة</td><td>بيبني simulator من التاريخ ويتدرب فيه.</td></tr>
+          <tr><td>DeepMind: البلازما في الـ tokamak</td><td>تجارب حقيقية على TCV</td><td>Train with simulators</td><td>بيتدرب في simulator، وبعدين يتنقل للجهاز.</td></tr>
+          <tr><td>DeepMind: تكييف المباني (HVAC)</td><td>اتنزل لفترة</td><td>Online</td><td>بيبدأ بـ value function متقدّرة من offline data.</td></tr>
+          <tr><td>Swift: سباق drones</td><td>كسب أبطال بشر</td><td>simulator + fine-tune على data حقيقية</td><td>بيتدرب في simulation، ويظبط نفسه على شوية data حقيقية.</td></tr>
+          <tr><td>ChatGPT و Claude و Llama 2</td><td>شغالين</td><td>RLHF و RLAIF</td><td>الـ reward جاي من تفضيلات البشر (أو AI).</td></tr>
+        </table></div>
+        <div class="note"><b>الربط بالـ lecture</b>عمود الـ approach هو بالظبط إجابة شرط «الغلط رخيص أو فيه simulator» من مشهد شروط النجاح. لما الغلط غالي، الناس بتهرب لـ offline data أو simulator.</div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag hw">Assignment 1 و 2</span> هات مشكلة من بره الـ data science</h4>
+        <p>المطلوب: قرار <b>بيتكرر</b>، وحد هياخد باله لو اتعمل أحسن. اكتب الـ state والـ action والـ reward في سطر لكل واحد، وجاوب: القرار بيتكرر؟ والـ action النهارده بيأثر على الـ state بكرة؟ جرّب هنا:</p>
+        <div class="panel" id="x1help"></div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag exam">الامتحان</span> الدكتور بيسأل عن الـ papers إزاي؟</h4>
+        <ul class="clean">
+          <li>يطلب منك تكتب الـ <b>agent والـ environment والـ state والـ action والـ reward</b> زي ما الـ paper عرّفها.</li>
+          <li>يسألك ليه المشكلة <b>bandit مش full RL</b>، أو العكس: إيه اللي لازم يتغير عشان الـ next state يفرق.</li>
+          <li>يطلب <b>limitation</b> في الـ reward، زي إن الـ click مش هو رضا المستخدم.</li>
+          <li>يطلب منك تاخد موقف، أو تقترح experiment يحسم سؤال. التلخيص لوحده مش هياخد درجة.</li>
+        </ul>
+      </div>
+      <p class="bridge">الـ Lecture 2 بتدّي الكلام ده أرقام.</p>
+    </section>

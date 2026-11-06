@@ -1,0 +1,63 @@
+<section class="scene" id="s3-x1" data-t="من الكتاب: J&amp;M 15.5–15.6">
+      <div class="sh"><span class="n">0</span><h3>من الكتاب: J&amp;M 15.4.5 لـ 15.6</h3></div>
+      <p class="lead"><span class="stag hw">Assignment 3</span> القراية: 15.5.2–15.6 (الـ windowing، والـ DFT، والـ mel filter bank، والـ log، والـ MFCC)، ومراجعة 15.4.5. دي الحاجات اللي الكتاب بيزوّدها على الـ slides.</p>
+      <div class="grid2">
+        <div class="card"><b><span class="stag book">15.5.2</span> الـ window ليه 3 parameters</b><span class="small">الـ <b>size</b> (عرضه بالـ ms)، والـ <b>stride</b> (ويقولوا عليه shift أو offset) بين الـ windows، والـ <b>shape</b>. والـ Hamming بيقرّب الـ signal للصفر عند الأطراف عشان <b>يمنع الـ discontinuities</b>.</span></div>
+        <div class="card"><b><span class="stag book">15.5.3</span> الـ FFT</b><span class="small">نفس الـ DFT بس أسرع، وشغال بس لما <span class="m">N</span> تبقى power of 2. عشان كده بنعمل zero-padding من 400 لـ 512.</span></div>
+        <div class="card"><b><span class="stag book">15.5.4</span> ليه mel؟</b><span class="small">الودن <b>أقل حساسية في الـ frequencies العالية</b>. والمعلومات اللي في الـ frequencies الواطية (زي الـ formants) هي اللي بتفرّق بين الـ vowels والـ nasals. أما اللي فوق (الـ bursts والـ fricative noise) فأقل أهمية. فالـ filters بتبقى <b>دقيقة جداً تحت، وأقل دقة فوق</b>.</span></div>
+        <div class="card"><b><span class="stag book">15.5.4</span> ليه log؟</b><span class="small">إحساس البني آدم بمستوى الصوت logarithmic، والودن أحسس للفروق في الـ amplitudes الصغيرة. وكمان الـ log بيخلّي الـ features <b>أقل تأثراً</b> بتغيّر الـ power، زي إن المتكلم يقرّب أو يبعد عن الـ mic.</span></div>
+      </div>
+      <div class="blk">
+        <h4>جرّب: قرّب من الـ mic، وشوف الـ log بيعمل إيه</h4>
+        <p class="small">لو ضربت الطاقة في <span class="m">g</span>، الـ log بيزوّد رقم ثابت على كل الـ channels: <span class="m">log(g·E) = log g + log E</span>. يعني الشكل زي ما هو، بس اتزق لفوق. والـ mean normalization بيشيل الإزاحة دي خالص.</p>
+        <div class="ctl"><label for="xgain">الـ gain (قرب الـ mic)</label><input type="range" id="xgain" min="-20" max="20" step="1" value="10"><output id="xgainO"></output></div>
+        <div id="xlogp"></div>
+      </div>
+      <div class="blk">
+        <h4><span class="stag book">15.6</span> الـ MFCC بالظبط: 39 رقم</h4>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th></th><th>cepstral</th><th>energy</th></tr>
+          <tr><td>static</td><td>12</td><td>1</td></tr><tr><td>delta (Δ)</td><td>12</td><td>1</td></tr><tr><td>double delta (ΔΔ)</td><td>12</td><td>1</td></tr>
+          <tr><td><b>المجموع</b></td><td colspan="2"><b>39</b></td></tr>
+        </table></div>
+        <p class="small">الـ <b>cepstrum</b> = الـ inverse DFT (عملياً DCT) للـ log spectrum. وفايدته إنه <b>بيفصل الـ source عن الـ filter</b>: أول coefficients = الـ envelope بتاع الـ vocal tract (اللي بيحدد الـ phone)، والـ coefficients العالية = الـ pitch. وده بالظبط اللي جرّبته في مشهد الـ MFCC. (والسلايد بيقول <span class="m">c<sub>0</sub></span> هو حد الطاقة، وده نفس الفكرة: 13 = 12 + 1.)</p>
+      </div>
+      <p class="bridge">الأسئلة اللي جت على الكلام ده قبل كده.</p>
+    </section>
+
+    <section class="scene" id="s3-x2" data-t="امتحانات سابقة + Assignment 3">
+      <div class="sh"><span class="n">0</span><h3>من امتحانات سابقة، ومن Assignment 3</h3></div>
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Midterm سابق (صور الامتحان) · Q3(a) (4 pts)</span><b>الـ mel filters ليه بتعرض فوق؟</b></div>
+        <div class="qen">The triangular filters in a Mel-filter bank are non-uniformly spaced, becoming broader at higher frequencies. (i) What is the underlying reason, based on human hearing? (ii) Vowels are characterized by low-frequency energy peaks (formants). If linearly spaced filters were used instead, how would this impact vowel recognition?</div>
+        <p class="small">قارن 12 filter mel بـ 12 filter linear على نفس الـ 0–8000 Hz. الشريط الأصفر = منطقة F1 وF2 (تقريباً 250–2500 Hz):</p>
+        <div class="seg" id="xfbK" role="group" aria-label="نوع الـ filterbank"><button type="button" data-k="mel" aria-pressed="true">Mel</button><button type="button" data-k="lin" aria-pressed="false">Linear</button></div>
+        <div id="xfb"></div>
+        <div class="readout" id="xfbR"></div>
+        <details class="rv"><summary>إجابة نموذجية (من J&amp;M 15.5.4)</summary><div class="ans">
+          <p><b>(i)</b> الودن مش بنفس الحساسية على كل الـ frequencies. إحساسنا بالـ pitch تقريباً linear تحت 1 kHz وlogarithmic فوقها، فبنفرّق بين frequencies قريبة من بعض تحت، ومش بنفرّق فوق. فالـ filters ضيقة (دقة عالية) تحت، وعريضة فوق، بنفس عرض ثابت على الـ mel scale.</p>
+          <p><b>(ii)</b> الـ linear بيدّي نفس العرض في كل حتة. فمنطقة الـ formants تحت تاخد filters <b>أقل</b> وأعرض، والـ F1 والـ F2 القريبين ممكن يقعوا في نفس الـ filter ويتخلطوا، فالـ vowels تتلخبط في بعض، زي «ee» و«ih». وفي نفس الوقت filters كتير بتضيع على frequencies عالية أقل أهمية للـ vowels. النتيجة: أداء أوحش في التعرف على الـ vowels.</p>
+        </div></details>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Midterm سابق · Q1(c)</span> <span class="stag exam">Final · Jan 2026 · Q1(a)</span><b>اتسألوا على الـ lecture دي كمان</b></div>
+        <ul class="clean small"><li>الـ spectrogram بيمثل أنهي domain؟ <b>Time-Frequency</b>.</li><li>الـ frequency لـ signal aperiodic بتتحسب إزاي؟ بالـ <b>DFT</b> على frame بعد الـ window، والنتيجة spectrum. والإجابة كاملة في Lecture 2.</li></ul>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag hw">Assignment 3</span> فخاخ الـ librosa اللي هتقابلها</h4>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th>الحاجة</th><th>اللي بيحصل</th><th>عشان تطابق المحاضرة</th></tr>
+          <tr><td class="mono">librosa.stft</td><td>بيرجّع <b>bins × frames</b> = <span class="m">257 × T</span></td><td>اعمل transpose عشان يبقى <span class="m">T × 257</span> زي السلايد.</td></tr>
+          <tr><td class="mono">center=True</td><td>بيحط padding <span class="m">n_fft/2</span> على الجنبين. والـ frames لـ 2 ثانية بتطلع <b>201</b>، مش 198.</td><td><span class="mono">center=False</span></td></tr>
+          <tr><td>طول الـ frame</td><td>الـ librosa بتقطّع بـ <span class="mono">n_fft</span>، مش <span class="mono">win_length</span>. فمع <span class="mono">n_fft=512</span> و<span class="mono">center=False</span>، الـ frames: <span class="m">1 + ⌊(32000 − 512)/160⌋ = 197</span></td><td>عشان 198 بالظبط، قطّع بإيدك بـ <span class="m">L = 400</span>، وبعدين FFT بـ 512.</td></tr>
+          <tr><td class="mono">librosa.filters.mel</td><td>الـ default هو Slaney mel، ومساحة الـ filters normalized</td><td><span class="mono">htk=True</span> عشان قانون <span class="m">1127 ln(1 + f/700)</span>، و<span class="mono">norm=None</span> عشان قمة كل مثلث = 1.</td></tr>
+          <tr><td>الـ power</td><td>الـ mel filterbank بيتضرب في <span class="m">|X|²</span> (power)، مش في <span class="m">|X|</span></td><td><span class="mono">np.abs(X)**2</span></td></tr>
+          <tr><td class="mono">feature.mfcc</td><td>الـ default هو <span class="mono">n_mfcc=20</span></td><td><span class="mono">n_mfcc=13</span></td></tr>
+          <tr><td class="mono">feature.delta</td><td>الـ default هو <span class="mono">width=9</span></td><td>قانون السلايد (N = 2) = <span class="mono">width=5</span></td></tr>
+        </table></div>
+        <p class="src">تفاصيل الـ librosa دي من الـ documentation بتاعها، مش من المحاضرة. اتأكد منها وإنت بتحل: اطبع الـ shapes وقارن بالقانون.</p>
+      </div>
+      <p class="bridge">نلخّص Lecture 3.</p>
+    </section>

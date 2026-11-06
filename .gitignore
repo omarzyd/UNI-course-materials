@@ -4,3 +4,9 @@ ehthumbs.db
 desktop.ini
 # Office lock files
 ~$*
+
+# study hub scratch
+study-hub/work/
+__pycache__/
+/study-hub-kit.zip
+/STUDY-HUB-PROMPT.md

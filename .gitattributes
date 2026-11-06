@@ -1,0 +1,4 @@
+# keep the study hub byte-stable across Windows/Mac/Linux
+study-hub/** text eol=lf
+*.webp binary
+*.zip binary

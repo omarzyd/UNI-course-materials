@@ -1,0 +1,56 @@
+<section class="scene" id="s1-x1" data-t="من الكتاب والـ assignment">
+      <div class="sh"><span class="n">0</span><h3>من الكتاب (J&amp;M 16.1 و16.6) ومن Assignment 1</h3></div>
+      <p class="lead">الـ midterm بيغطي أسابيع 1 لـ 7، وفيه سؤال على قراية مقررة. المشهد ده بيكمّل الـ lecture من الكتاب، وبيربطها بـ Assignment 1.</p>
+
+      <div class="blk">
+        <h4><span class="stag book">J&amp;M 16.1</span> الـ ASR بيصعب على 4 محاور</h4>
+        <div class="grid2">
+          <div class="card"><b>حجم الـ vocabulary</b><span class="small">«آه ولا لأ» (كلمتين) أو الأرقام (11 كلمة) محلولين من زمان. والكلام المفتوح (60,000 كلمة وأكتر) أصعب بكتير.</span></div>
+          <div class="card"><b>بيكلّم مين</b><span class="small">اللي بيكلّم machine أو بيقرا بصوت عالي بيبسّط كلامه. والأصعب: اتنين بني آدمين بيتكلموا مع بعض.</span></div>
+          <div class="card"><b>الـ channel والـ noise</b><span class="small">mic على الراس في أوضة هادية أسهل بكتير من mic بعيد في شارع أو عربية شباكها مفتوح.</span></div>
+          <div class="card"><b>الـ accent ونوع المتكلم</b><span class="small">لهجة غير اللي الـ system اتدرب عليها، أو أطفال، بيبقوا أصعب بكتير.</span></div>
+        </div>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th>الـ corpus</th><th>نوعه</th><th>WER تقريبي (Fig. 16.1)</th></tr>
+          <tr><td>LibriSpeech clean</td><td>كتب مسموعة (read speech) عند 16 kHz</td><td><b class="cR">≈ 2%</b></td></tr>
+          <tr><td>Switchboard / CALLHOME / AMI</td><td>مكالمات واجتماعات بين بني آدمين</td><td><b class="cA">5.8 – 11%</b></td></tr>
+          <tr><td>CHiME-6</td><td>عزومات عشا في بيوت، mics بعيدة، 4 متكلمين</td><td><b class="cN">لحد 25.5%</b></td></tr>
+        </table></div>
+        <p class="small">ومعلومة حلوة: LibriSpeech اتقسم لـ «clean» و«other» <b>بالـ WER نفسه</b>. شغّلوا recognizer على كل متكلم، واللي الـ WER بتاعهم واطي بقوا clean، والباقي other. يعني «سهل» و«صعب» متعرّفين بأداء system، مش بحاجة في الصوت نفسه.</p>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">J&amp;M 16.6</span> مثال الكتاب: WER = 76.9%</h4>
+        <div class="qen">REF: i *** ** UM the PHONE IS i LEFT THE portable **** PHONE UPSTAIRS last night<br>HYP: i GOT IT TO the ***** FULLEST i LOVE TO portable FORM OF STORES last night</div>
+        <p><span class="m">(6 S + 3 I + 1 D) / 13 = 76.9%</span>. افتحه في الـ WER calculator (زرار «مثال الكتاب») وشوف الـ alignment بتاعه.</p>
+        <ul class="clean small">
+          <li><b>الأداة الـ standard:</b> <span class="kbd">sclite</span> من NIST. بتطلّع الـ WER، وconfusion matrix للكلمات اللي بتتلخبط، والـ WER لكل speaker، والـ <b>sentence error rate</b> (نسبة الجمل اللي فيها غلطة واحدة على الأقل).</li>
+          <li><b>قواعد normalization شائعة قبل الحساب:</b> شيل الكلام اللي بين أقواس [ ]، وشيل أو وحّد الـ «uh» والـ «um»، ووحّد «I'm» و«I am»، واكتب الأرقام والتواريخ بشكل واحد، ووحّد الإملا الأمريكاني والبريطاني.</li>
+          <li><b>الفرق ده حقيقي ولا صدفة؟</b> اختبار <b>MAPSSWE</b>: بيقسم الكلام لـ segments حدودها كلمات الاتنين جابوها صح، ويقارن عدد الغلطات في كل segment.</li>
+        </ul>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag hw">Assignment 1</span> احسب الـ WER لتسجيلك، وهات غلطة واحدة</h4>
+        <p>لما تدوّر على «الغلطة اللي البني آدم ما كانش هيعملها»، صنّفها. الأنواع دي هي اللي الدكتور بيستنى تسمّيها:</p>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th>النوع</th><th>مثال</th><th>ليه حصل</th></tr>
+          <tr><td>نفس الصوت</td><td>«ice cream» و«I scream»</td><td>الـ language model اختار الأشهر، مش الأنسب للـ context.</td></tr>
+          <tr><td>لهجة / OOV</td><td>كلمة عامية مصري اتكتبت فصحى أو اتشالت</td><td>الـ training data أغلبها فصحى أو لهجات تانية.</td></tr>
+          <tr><td>Code-switching</td><td>«الـ meeting» اتكتبت «الميتنج» أو اختفت</td><td>الـ model متوقع لغة واحدة في الجملة.</td></tr>
+          <tr><td>Normalization</td><td>«احمد» و«أحمد»</td><td>مش غلطة سماع أصلاً، والـ WER حسبها غلطة.</td></tr>
+          <tr><td>Noise / channel</td><td>كلمات ضاعت في الدوشة</td><td>الـ mic أو المكان مختلف عن الـ training.</td></tr>
+        </table></div>
+        <p class="small">وفي الـ Open ASR Leaderboard: الرقم الكبير هو <b>macro-average</b> للـ WER على datasets إنجليزي (AMI meetings، وEarnings22، وGigaSpeech، وLibriSpeech clean/other، وSPGISpeech، وVoxPopuli، وغيرهم)، ومعاه <b>RTFx</b> للسرعة. وفي الـ snapshot اللي إنت عملته في Assignment 1 (2 أكتوبر)، الأول كان متوسطه <b>4.38%</b>: من <b>1.11%</b> على LibriSpeech clean، لـ <b>12.1%</b> على الكلام الـ conversational الخاص. يعني الرقم الواحد ده بيخبّي فرق 10 مرات، وكمان ما بيقولش حاجة عن عربي مصري.</p>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag mine">سؤال تدريب بأسلوب الدكتور</span><b>«خد موقف»، مش «لخّص»</b></div>
+        <div class="qen">A model reports 2% WER on LibriSpeech test-clean. A company wants to deploy it for Egyptian Arabic customer-service calls. Take a position: will 2% hold? Propose the experiment that would settle it.</div>
+        <details class="rv"><summary>إجابة نموذجية مختصرة</summary><div class="ans">
+          <p><b>الموقف:</b> لأ. الـ 2% جاية من read English عند 16 kHz بـ mic كويس. والمكالمات: لغة تانية ولهجة، وconversational، وtelephone بـ 8 kHz (يعني frequencies لحد 4 kHz بس)، وnoise، وcode-switching. كل محور من محاور J&amp;M 16.1 بيصعب.</p>
+          <p><b>الـ experiment:</b> اجمع test set من مكالمات حقيقية بعد موافقة أصحابها، واكتب transcript ليها بـ normalization عربي متفق عليه. واحسب الـ WER والـ CER لكل speaker ولكل condition (لهجة، noise، code-switching). وقارن بـ baseline اتعمله fine-tune على عربي. واستخدم MAPSSWE عشان تتأكد إن الفرق مش صدفة.</p>
+        </div></details>
+      </div>
+      <p class="bridge">نلخّص Lecture 1.</p>
+    </section>

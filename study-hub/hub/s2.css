@@ -1,0 +1,12 @@
+/* s2 */
+.sylrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.syl{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.sylar{text-align:center;font-size:1.6rem;font-weight:600}
+.syl .parts{display:flex;gap:3px;font-family:var(--f-mono);font-size:1.5rem;font-weight:600}
+.syl .parts span{padding:4px 12px;border-radius:8px}
+.syl .on{background:color-mix(in srgb,var(--s) 18%,var(--surface));color:var(--s)}
+.syl .nu{background:color-mix(in srgb,var(--a) 24%,var(--surface));color:var(--a);outline:2px solid var(--a)}
+.syl .co{background:color-mix(in srgb,var(--r) 18%,var(--surface));color:var(--r)}
+.syl .rime{display:grid;grid-auto-flow:column;gap:3px;padding:0!important}
+.rimebar{grid-row:2;grid-column:1 / -1;border-top:2px solid var(--muted);font-size:.7rem;font-style:normal;color:var(--muted);text-align:center;padding-top:1px;font-weight:400}
+.syl .parts{align-items:flex-start}

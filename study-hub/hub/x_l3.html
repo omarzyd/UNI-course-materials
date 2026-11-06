@@ -1,0 +1,116 @@
+<section class="scene" id="l3-x1" data-t="من الكتاب: S&amp;B 3.5–3.6">
+      <div class="sh"><span class="n">0</span><h3>من الكتاب: الـ gridworld بتاع Sutton &amp; Barto</h3></div>
+      <p class="lead"><span class="stag book">S&amp;B Example 3.5 و 3.8</span> grid مقاسه 5×5. من <b>A</b> أي action بيوديك لـ <b>A′</b> وتاخد <span class="cR">+10</span>، ومن <b>B</b> لـ <b>B′</b> وتاخد <span class="cR">+5</span>. لو خرجت بره الـ grid بتفضل مكانك وتاخد <span class="cN">−1</span>، وأي حركة تانية صفر. و<span class="m">γ = 0.9</span>. الأرقام دي محسوبة هنا (policy evaluation و value iteration). دوس على أي خانة عشان تتأكد من الـ Bellman equation بنفسك:</p>
+      <div class="seg" id="xgwK" role="group" aria-label="أنهي value function">
+        <button type="button" data-k="pi" aria-pressed="true"><span class="ltr">v<sub>π</sub> (random policy)</span></button>
+        <button type="button" data-k="star" aria-pressed="false"><span class="ltr">v<sub>*</sub> + π<sub>*</sub></span></button>
+      </div>
+      <div class="two">
+        <div id="xgw"></div>
+        <div class="panel" id="xgwOut"></div>
+      </div>
+      <div class="note"><b>S&amp;B Ex. 3.14</b>الخانة اللي في النص قيمتها 0.7، وجيرانها 2.3 و0.4 و−0.4 و0.7. اتأكد: <span class="m">0.25 × 0.9 × (2.3 + 0.4 − 0.4 + 0.7) = 0.675 ≈ 0.7</span> ✓. دوس عليها في الجدول.</div>
+      <div class="note"><b>ليه v(A) أقل من 10؟</b>عشان بعد الـ +10، A′ في الحافة اللي تحت، والـ random policy بتخبط في الحيطة كتير. وv(B) أكبر من 5، عشان B′ قريبة من A وB.</div>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B Ex. 3.22</span> شمال ولا يمين؟ γ هي اللي بتقرر</h4>
+        <div class="qen">Continuing MDP: from the top state, action left gives +1 then 0, +1, 0, …; action right gives 0 then +2, 0, +2, … Which policy is optimal if γ = 0, 0.9, 0.5?</div>
+        <div class="ctl"><label for="xlrg">γ</label><input type="range" id="xlrg" min="0" max="0.99" step="0.01" value="0.5"><output id="xlrgO"></output></div>
+        <div id="xlr"></div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B Ex. 3.15 و 3.16</span> لو زوّدت رقم ثابت c على كل الـ rewards؟</h4>
+        <ul class="clean">
+          <li><b>Continuing:</b> كل الـ values بتزيد بنفس المقدار <span class="m">v<sub>c</sub> = c / (1 − γ)</span>، فالترتيب بين الـ states ما بيتغيرش، والـ policy الأحسن زي ما هي.</li>
+          <li><b>Episodic:</b> بيفرق! لو c موجب، الـ agent ممكن يطوّل الـ episode عشان يجمّع c أكتر. ولو سالب، بيستعجل يخلّص. زي متاهة Ex. 3.7.</li>
+        </ul>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">S&amp;B Ex. 3.12، 3.13، 3.25–3.28</span> المعادلات الأربعة اللي بتربط v وq</h4>
+        <div class="grid2">
+          <div class="card"><b>v من q</b><span class="m">v<sub>π</sub>(s) = Σ<sub>a</sub> π(a|s) q<sub>π</sub>(s,a)</span></div>
+          <div class="card"><b>q من v</b><span class="m">q<sub>π</sub>(s,a) = Σ<sub>s′,r</sub> p(s′,r|s,a) [r + γ v<sub>π</sub>(s′)]</span></div>
+          <div class="card"><b>v* من q*</b><span class="m">v<sub>*</sub>(s) = max<sub>a</sub> q<sub>*</sub>(s,a)</span></div>
+          <div class="card"><b>π* من q*</b><span class="m">π<sub>*</sub>(s) = argmax<sub>a</sub> q<sub>*</sub>(s,a)</span></div>
+          <div class="card"><b>π* من v* (محتاج p)</b><span class="m">π<sub>*</sub>(s) = argmax<sub>a</sub> Σ p(s′,r|s,a)[r + γ v<sub>*</sub>(s′)]</span></div>
+          <div class="card"><b>Bellman optimality</b><span class="m">v<sub>*</sub>(s) = max<sub>a</sub> Σ p(s′,r|s,a)[r + γ v<sub>*</sub>(s′)]</span></div>
+        </div>
+        <p class="small">آخر اتنين جم في الامتحان بالنص: «Define the Bellman optimality equation»، و«Outline the algorithm to extract the policy». شوف المشهد الجاي.</p>
+      </div>
+      <p class="bridge">نحل أسئلة الامتحانات اللي فاتت بنفس الأدوات.</p>
+    </section>
+
+    <section class="scene" id="l3-x2" data-t="امتحانات سابقة">
+      <div class="sh"><span class="n">0</span><h3>أسئلة امتحانات سابقة على الـ MDP</h3></div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Midterm · Nov 2025 · Q2 (6 pts)</span><b>Bellman optimality + طلّع الـ policy</b></div>
+        <div class="qen">S = {s1, s2}, A = {a1, a2}.
+          <table><tr><th>State</th><th>Action</th><th>Next states</th><th>Probabilities</th><th>Rewards</th></tr>
+          <tr><td>s1</td><td>a1</td><td>s1, s2</td><td>0.5, 0.5</td><td>5, 10</td></tr><tr><td>s1</td><td>a2</td><td>s2</td><td>1.0</td><td>7</td></tr>
+          <tr><td>s2</td><td>a1</td><td>s1</td><td>1.0</td><td>0</td></tr><tr><td>s2</td><td>a2</td><td>s2</td><td>1.0</td><td>8</td></tr></table>
+          (a) Define the Bellman optimality equation. (b) Assume v(s1) = 50, v(s2) = 55. (i) Outline the algorithm to extract the deterministic policy. (ii) Compute π(s1), π(s2) with γ = 0.9.</div>
+        <details class="rv"><summary>(a) و (b-i)</summary><div class="ans">
+          <div class="mb" style="font-size:1.05rem">v<sub>*</sub>(s) = max<sub>a</sub> Σ<sub>s′,r</sub> p(s′, r | s, a) [ r + γ v<sub>*</sub>(s′) ]</div>
+          <p><b>الـ algorithm</b> (one-step lookahead): لكل state، لكل action، احسب <span class="m">q(s,a) = Σ p [r + γ v(s′)]</span>. وبعدين <span class="m">π(s) = argmax<sub>a</sub> q(s,a)</span>. ولو فيه تعادل، اختار أي واحد منهم.</p>
+        </div></details>
+        <p class="small">(b-ii) غيّر الـ values أو γ، وشوف الحساب بيتغير:</p>
+        <div class="grid2">
+          <div class="ctl"><label for="xv1">v(s1)</label><input type="range" id="xv1" min="0" max="100" step="1" value="50"><output id="xv1O"></output></div>
+          <div class="ctl"><label for="xv2">v(s2)</label><input type="range" id="xv2" min="0" max="100" step="1" value="55"><output id="xv2O"></output></div>
+          <div class="ctl"><label for="xvg">γ</label><input type="range" id="xvg" min="0" max="1" step="0.05" value="0.9"><output id="xvgO"></output></div>
+        </div>
+        <div id="xq2"></div>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Final · Jan 2026 · Q7 (2 pts)</span><b>قيمة state مع policy عشوائية</b></div>
+        <div class="qen">From state s: action a1 (reward 10) with probability 0.2, action a2 (reward 2) with probability 0.8. γ = 0 and next states have value 0. What is V(s)?</div>
+        <p><span class="m">V(s) = Σ<sub>a</sub> π(a|s) [r + γ V(s′)] = 0.2 × (10 + 0) + 0.8 × (2 + 0) = 2 + 1.6 = 3.6</span></p>
+        <p class="small">خد بالك: الـ action الأحسن لوحده (10) مش هو الإجابة. الـ <span class="m">v<sub>π</sub></span> متوسط مرجّح بالـ policy. ولو الـ policy كانت greedy، كانت الإجابة 10 (ودي <span class="m">v<sub>*</sub></span>).</p>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Final · Jan 2026 · Q3 (10 pts)</span><b>اتنين «advisors» بـ value functions مختلفة</b></div>
+        <div class="qen">4×4 grid, moves Up/Down/Left/Right, a move into a wall stays put, γ = 1, r = 0. (a) Draw the greedy policy for V<sub>A</sub>. (b) Best action at (R3, C3) for V<sub>B</sub>? (c) Build π<sub>new</sub> better than both greedy policies. (d) Hidden +10 at (R1,C4) and at (R4,C1): which policy finds a reward from anywhere?</div>
+        <div class="seg" id="xadv" role="group" aria-label="الـ advisor">
+          <button type="button" data-k="A" aria-pressed="true"><span class="ltr">V<sub>A</sub></span></button>
+          <button type="button" data-k="B" aria-pressed="false"><span class="ltr">V<sub>B</sub></span></button>
+          <button type="button" data-k="N" aria-pressed="false"><span class="ltr">π<sub>new</sub>: greedy on max(V<sub>A</sub>, V<sub>B</sub>)</span></button>
+        </div>
+        <div class="two"><div id="xadvG"></div><div class="panel" id="xadvOut"></div></div>
+        <details class="rv"><summary>إجابة مقترحة لـ (c) و (d) <span class="stag mine">حلّي</span></summary><div class="ans">
+          <p>الـ <span class="m">V<sub>A</sub></span> بيشد ناحية (R1,C4) فوق يمين، والـ <span class="m">V<sub>B</sub></span> بيشد ناحية (R4,C1) تحت شمال. كل واحد شايف نص الخريطة بس. والـ <span class="m">π<sub>new</sub></span>: في كل خانة، روح ناحية الجار اللي عنده أعلى <span class="m">max(V<sub>A</sub>, V<sub>B</sub>)</span>، يعني اتبع الـ advisor اللي «متفائل» أكتر في المنطقة دي. ومن أي مكان هتروح لأقرب هدف من الاتنين.</p>
+          <p>(d) الـ <span class="m">π<sub>new</sub></span>: عشان الـ greedy على <span class="m">V<sub>A</sub></span> بس، لو بدأت جنب (R4,C1)، هيبعدك عنها ويوديك للزاوية التانية في طريق أطول. وبالعكس للـ <span class="m">V<sub>B</sub></span>.</p>
+          <p class="small">الإجابة دي من عندي. الامتحان مش جايب حل نموذجي، فالمهم تبرير منطقي زي ده.</p>
+        </div></details>
+      </div>
+      <p class="bridge">وآخر حاجة: الـ assignment بتاع Tower of Hanoi.</p>
+    </section>
+
+    <section class="scene" id="l3-x3" data-t="Assignment 3: Hanoi">
+      <div class="sh"><span class="n">0</span><h3><span class="stag hw">Assignment 3</span> Tower of Hanoi كـ MDP</h3></div>
+      <div class="grid2">
+        <div class="card"><b>States</b><span class="small"><span class="m">(d<sub>1</sub>, d<sub>2</sub>, d<sub>3</sub>)</span>، و<span class="m">d<sub>i</sub></span> هو الـ peg اللي عليه disk رقم i (1 = الأصغر). يعني <span class="m">3³ = 27</span> state. البداية <span class="m">(A,A,A)</span>، والهدف <span class="m">(C,C,C)</span>.</span></div>
+        <div class="card"><b>Actions و Transitions</b><span class="small">انقل الـ disk اللي فوق من peg لـ peg، بشرط ما يتحطش على disk أصغر منه. والـ transition deterministic.</span></div>
+        <div class="card"><b>Reward</b><span class="small">1 لو وصلت <span class="m">(C,C,C)</span>، و0 غير كده. و<span class="m">γ = 1</span>.</span></div>
+        <div class="card"><b>الـ naive policy</b><span class="small">حرّك الـ disk الأصغر للـ peg اللي بعده clockwise، ولو مش ممكن حرّك الـ disk اللي بعده.</span></div>
+      </div>
+      <div class="note warn"><b>الملاحظة المهمة</b>الـ disk الأصغر دايماً فوق، فدايماً ينفع يتحرك. يعني الشرط «لو مش ممكن» <b>عمره ما بيحصل</b>، والـ policy بتلف الـ disk 1 في دواير، والـ disks 2 و3 ما بيتحركوش أبداً. اتفرّج:</div>
+      <div class="two">
+        <div id="xhan"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="row"><button class="btn" id="xhanStep">خطوة بالـ policy</button><button class="btn ghost" id="xhan0">(A,A,A)</button><button class="btn ghost" id="xhanB">(B,C,C)</button></div>
+          <div class="readout" id="xhanR"></div>
+        </div>
+      </div>
+      <div class="blk">
+        <h4>الـ value function بعد iteration واحدة</h4>
+        <div class="mb">v<sub>1</sub>(s) = R(s, π(s)) + γ · v<sub>0</sub>(s′),   v<sub>0</sub> = 0,   γ = 1</div>
+        <p>بما إن <span class="m">v<sub>0</sub> = 0</span> في كل حتة، يبقى <span class="m">v<sub>1</sub>(s) = R(s, π(s))</span>، وده 1 بس لو الـ action بتاع الـ policy بيوصّل للهدف على طول. ومع clockwise <span class="m">A → B → C → A</span>، الـ state الوحيدة هي <span class="m">(B,C,C)</span>: الـ disk 1 بيروح من B لـ C. يعني <b><span class="m">v<sub>1</sub>(B,C,C) = 1</span></b>، والـ 26 state التانيين قيمتهم 0.</p>
+        <p class="small">ولو كمّلت iterations: القيمة 1 هتوصل كمان لـ <span class="m">(A,C,C)</span>، عشان الخطوة اللي بعدها بتوديها <span class="m">(B,C,C)</span>، وبس كده. أي state الـ disk 2 أو 3 فيها مش على C هتفضل 0 للأبد. وده بيثبت إن الـ naive policy عمرها ما هتحل اللعبة من البداية. ولو اخترت clockwise بالعكس (<span class="m">A → C → B</span>)، الـ state اللي قيمتها 1 هتبقى <span class="m">(A,C,C)</span>. فقول اتجاهك في الحل.</p>
+      </div>
+      <p class="bridge">كده خلصنا الـ MDP. نلخّص.</p>
+    </section>

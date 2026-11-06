@@ -1,0 +1,1665 @@
+<title>حكاية RL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: a story book. Chapter map on top, then one chapter at a time, scenes in order, sticky scene list on wide screens.
+   Color is meaning: state = blue, action = amber, reward = green, penalty = red, gamma = violet. Same everywhere. */
+:root{
+  --bg:#EDF1F4; --surface:#FFFFFF; --sunk:#E2E8EC; --ink:#13202A; --muted:#566673; --line:#D0D9DF;
+  --s:#2B67D1; --a:#BF6A17; --r:#16835A; --neg:#C8372F; --g:#6D43C4; --accent:#0E6B75; --hl:#FFF0B3;
+  --f-body:"Readex Pro","Segoe UI",Tahoma,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --f-math:"STIX Two Text","Cambria Math","Times New Roman",serif;
+  --radius:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1318; --surface:#141E26; --sunk:#1B2731; --ink:#E3EAEF; --muted:#8E9EAB; --line:#273541;
+  --s:#73A4FF; --a:#F0A24E; --r:#41C98E; --neg:#FF6C63; --g:#AE90FF; --accent:#4CC3CD; --hl:#4A3E10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1318; --surface:#141E26; --sunk:#1B2731; --ink:#E3EAEF; --muted:#8E9EAB; --line:#273541;
+  --s:#73A4FF; --a:#F0A24E; --r:#41C98E; --neg:#FF6C63; --g:#AE90FF; --accent:#4CC3CD; --hl:#4A3E10; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.85;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 80px}
+h1,h2,h3,h4{line-height:1.35;text-wrap:balance;margin:0}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+bdi{unicode-bidi:isolate}
+.m{font-family:var(--f-math);font-style:italic;direction:ltr;unicode-bidi:isolate;font-size:1.08em;white-space:nowrap}
+.m i{font-style:normal}
+.mb{display:block;direction:ltr;text-align:center;font-family:var(--f-math);font-style:italic;font-size:1.25rem;padding:14px 12px;background:var(--sunk);border-radius:10px;overflow-x:auto;white-space:nowrap}
+.mono{font-family:var(--f-mono);font-size:.88em;direction:ltr;unicode-bidi:isolate}
+.cS{color:var(--s)} .cA{color:var(--a)} .cR{color:var(--r)} .cN{color:var(--neg)} .cG{color:var(--g)}
+.tag{display:inline-block;padding:0 .5em;border-radius:6px;font-weight:600;font-size:.92em;line-height:1.7}
+.tS{background:color-mix(in srgb,var(--s) 15%,transparent);color:var(--s)}
+.tA{background:color-mix(in srgb,var(--a) 17%,transparent);color:var(--a)}
+.tR{background:color-mix(in srgb,var(--r) 15%,transparent);color:var(--r)}
+.tN{background:color-mix(in srgb,var(--neg) 14%,transparent);color:var(--neg)}
+.tG{background:color-mix(in srgb,var(--g) 15%,transparent);color:var(--g)}
+.tE{background:var(--sunk);color:var(--ink)}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px;margin-bottom:18px}
+.brand h1{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:700;letter-spacing:-.01em}
+.brand h1 .loopmark{display:inline-block;color:var(--accent)}
+.brand p{color:var(--muted);font-size:.95rem}
+.legend{display:flex;flex-wrap:wrap;gap:6px;font-size:.85rem}
+
+/* chapter map */
+.map{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px;margin-bottom:26px;scrollbar-width:thin}
+.ch{position:relative;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ch .k{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.06em}
+.ch b{font-size:1rem}
+.ch .q{font-size:.83rem;color:var(--muted);line-height:1.6}
+.ch .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.ch .chips span{font-size:.72rem;padding:0 6px;border-radius:5px;background:var(--sunk);font-family:var(--f-mono)}
+.ch.open{cursor:pointer}
+.ch.open:hover{border-color:var(--accent)}
+.ch.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.ch.lock{opacity:.55;border-style:dashed;cursor:default}
+.ch .st{position:absolute;top:10px;inset-inline-end:12px;font-size:.75rem;color:var(--muted)}
+.ch.done .st{color:var(--r);font-weight:600}
+.ch::after{content:"";position:absolute;top:50%;inset-inline-end:-10px;width:10px;height:2px;background:var(--line)}
+.ch:last-child::after{display:none}
+
+/* chapter */
+.chapter{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;align-items:start}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:2px;font-size:.88rem}
+.toc .tt{font-size:.75rem;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.toc a{color:var(--muted);text-decoration:none;padding:4px 10px;border-inline-start:2px solid var(--line);line-height:1.5}
+.toc a:hover{color:var(--ink)}
+.toc a.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+.body{min-width:0;display:flex;flex-direction:column;gap:22px}
+.chead{display:flex;flex-direction:column;gap:8px;padding-bottom:6px}
+.chead .k{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);letter-spacing:.08em}
+.chead h2{font-size:clamp(1.5rem,3.4vw,2rem);font-weight:700}
+.chead p{color:var(--muted);max-width:62ch}
+
+.scene{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:14px;scroll-margin-top:20px}
+.sh{display:flex;align-items:baseline;gap:12px}
+.sh .n{font-family:var(--f-mono);font-size:.85rem;color:var(--surface);background:var(--ink);border-radius:50%;width:26px;height:26px;display:inline-grid;place-items:center;flex:none;transform:translateY(-2px)}
+.sh h3{font-size:1.28rem;font-weight:600}
+.lead{max-width:66ch}
+.bridge{display:flex;gap:10px;align-items:flex-start;color:var(--accent);font-weight:500;border-top:1px dashed var(--line);padding-top:12px;font-size:.96rem}
+.bridge::before{content:"←";font-weight:700}
+.note{border-radius:10px;padding:12px 14px;background:color-mix(in srgb,var(--accent) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.note.warn{background:color-mix(in srgb,var(--a) 10%,var(--surface));border-color:color-mix(in srgb,var(--a) 35%,transparent)}
+.note b:first-child{display:block;font-size:.85rem;margin-bottom:2px}
+ul.clean{margin:0;padding-inline-start:1.2em;display:flex;flex-direction:column;gap:6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);min-width:0;display:flex;flex-direction:column;gap:6px}
+.card h4{font-size:1rem}
+.small{font-size:.86rem;color:var(--muted)}
+.xs{font-size:.78rem}
+
+/* delay bars (L1 s1) */
+.delay{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted)}
+.delay .bar{flex:1;height:4px;border-radius:2px;background:repeating-linear-gradient(to left,var(--line) 0 6px,transparent 6px 10px)}
+.delay .dot{width:10px;height:10px;border-radius:50%;flex:none}
+
+/* compare table */
+.cmp{width:100%;border-collapse:collapse;font-size:.94rem}
+.cmp th,.cmp td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.cmp th{font-size:.8rem;color:var(--muted);font-weight:500}
+.cmp td:first-child{color:var(--muted);font-size:.85rem;white-space:nowrap}
+.tblwrap{overflow-x:auto}
+
+/* quiz chooser */
+.qz{display:flex;flex-direction:column;gap:10px}
+.qi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.qi .opts{display:flex;flex-wrap:wrap;gap:6px}
+.qi .opts button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px 12px;font-size:.88rem}
+.qi .opts button.ok{background:color-mix(in srgb,var(--r) 18%,var(--surface));border-color:var(--r)}
+.qi .opts button.bad{background:color-mix(in srgb,var(--neg) 14%,var(--surface));border-color:var(--neg)}
+.qi .fb{font-size:.9rem}
+.score{font-size:.9rem;color:var(--muted)}
+
+/* loop svg */
+.loopbox{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:center}
+.loopbox svg{width:100%;height:auto;display:block}
+.svgt{font-family:var(--f-body);font-size:15px}
+.svgm{font-family:var(--f-math);font-style:italic;font-size:15px}
+.lpanel{display:flex;flex-direction:column;gap:10px}
+.lpanel .step{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:96px}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--surface);border-radius:9px;padding:6px 16px;font-weight:500;font-size:.92rem}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* treasure grid */
+.game{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}
+.tg{direction:ltr;display:grid;grid-template-columns:28px repeat(4,62px);grid-template-rows:24px repeat(3,62px);gap:5px;font-family:var(--f-mono);font-size:.75rem}
+.tg .lb{display:grid;place-items:center;color:var(--muted)}
+.tg .cell{border-radius:9px;background:var(--sunk);display:grid;place-items:center;font-size:1.05rem;position:relative;border:1px solid var(--line);font-family:var(--f-body);font-weight:600}
+.tg .cell.seen{background:var(--surface)}
+.tg .cell.trap{background:color-mix(in srgb,var(--neg) 16%,var(--surface));color:var(--neg);border-color:color-mix(in srgb,var(--neg) 45%,transparent)}
+.tg .cell.gold{background:color-mix(in srgb,var(--r) 18%,var(--surface));color:var(--r);border-color:var(--r)}
+.tg .cell.here::after{content:"";position:absolute;inset:6px;border-radius:50%;border:3px solid var(--s)}
+.tg .cell.start::before{content:"start";position:absolute;bottom:2px;font-size:.6rem;color:var(--muted);font-family:var(--f-mono);font-weight:400}
+.pad{direction:ltr;display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,40px);gap:5px;margin-top:12px}
+.pad button{border:1px solid var(--line);background:var(--surface);border-radius:8px;font-family:var(--f-mono);font-size:.72rem;color:var(--a);font-weight:600}
+.pad button:disabled{opacity:.4}
+.pad .u{grid-column:2}
+.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.glog{font-size:.9rem;display:flex;flex-direction:column;gap:8px;min-width:0}
+.hud{display:flex;flex-wrap:wrap;gap:8px}
+.hud .box{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:4px 12px;font-size:.85rem}
+.hud .box b{font-family:var(--f-mono);font-size:1rem}
+.trj{direction:ltr;display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-family:var(--f-math);font-style:italic;font-size:1rem;background:var(--sunk);border-radius:10px;padding:10px 12px;min-height:48px}
+.trj .ar{color:var(--muted);font-style:normal;font-family:var(--f-body);font-size:.85rem}
+.trj span.v{font-style:normal;font-family:var(--f-mono);font-size:.78rem;opacity:.8}
+
+/* mini path grids */
+.pg{direction:ltr;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:240px}
+.pg div{aspect-ratio:1;border-radius:7px;background:var(--sunk);display:grid;place-items:center;font-family:var(--f-mono);font-size:.82rem;max-width:100%}
+.pg .p{background:color-mix(in srgb,var(--a) 22%,var(--surface));color:var(--a);font-weight:600}
+.pg .t{background:color-mix(in srgb,var(--neg) 18%,var(--surface));color:var(--neg)}
+.pg .t.p{outline:2px solid var(--a)}
+.pg .g{background:color-mix(in srgb,var(--r) 22%,var(--surface));color:var(--r);font-weight:700}
+
+/* gamma lab */
+.slider{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.slider input{flex:1;min-width:180px;accent-color:var(--g)}
+.slider output{font-family:var(--f-mono);font-size:1.2rem;color:var(--g);font-weight:600;min-width:4ch}
+.gtab{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:.82rem;direction:ltr}
+.gtab th,.gtab td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:center}
+.gtab th{color:var(--muted);font-weight:400;font-family:var(--f-body)}
+.gtab td.sum{font-weight:600}
+.vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.bars{display:flex;flex-direction:column;gap:8px}
+.barrow{display:grid;grid-template-columns:118px minmax(0,1fr) 56px;gap:8px;align-items:center;font-size:.85rem}
+.barrow .track{height:14px;background:var(--sunk);border-radius:7px;overflow:hidden}
+.barrow .fill{height:100%;border-radius:7px;transition:width .2s}
+.barrow .val{font-family:var(--f-mono);font-size:.82rem;direction:ltr;text-align:end}
+.winner{font-weight:600}
+svg .axis{stroke:var(--line)}
+
+/* steps (worked examples) */
+.steps{counter-reset:st;display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{counter-increment:st;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{content:counter(st);font-family:var(--f-mono);font-size:.78rem;width:24px;height:24px;border-radius:7px;background:var(--sunk);display:grid;place-items:center;margin-top:3px}
+
+/* markov chain */
+.seq{direction:ltr;display:flex;flex-wrap:wrap;gap:6px}
+.seq span{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-family:var(--f-mono);font-weight:600;border:2px solid transparent}
+.seq .S{background:color-mix(in srgb,var(--a) 22%,var(--surface));color:var(--a)}
+.seq .R{background:color-mix(in srgb,var(--s) 20%,var(--surface));color:var(--s)}
+.seq span.on{border-color:var(--ink)}
+.tally{direction:ltr;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tally div{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:6px 8px;text-align:center;font-family:var(--f-mono);font-size:.82rem}
+.tally div b{display:block;font-size:1.25rem}
+.tally div.flash{border-color:var(--ink)}
+.mc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center}
+.mc svg{width:100%;height:auto;max-width:360px}
+.mat{direction:ltr;border-collapse:collapse;font-family:var(--f-mono);font-size:.9rem;margin-inline:auto}
+.mat td,.mat th{padding:6px 12px;text-align:center;border:1px solid var(--line)}
+.mat th{color:var(--muted);font-weight:400}
+
+/* markov property */
+.hist{direction:ltr;display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-family:var(--f-math);font-style:italic}
+.hist span{padding:2px 8px;border-radius:6px;background:var(--sunk)}
+.hist.dim span.old{opacity:.25;text-decoration:line-through}
+.hist span.now{background:color-mix(in srgb,var(--s) 18%,var(--surface));color:var(--s);font-weight:600}
+.hist span.nowa{background:color-mix(in srgb,var(--a) 20%,var(--surface));color:var(--a);font-weight:600}
+.hist .ar{background:none;font-style:normal;color:var(--muted)}
+
+/* robot */
+.robot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.robot .card{align-items:center;text-align:center}
+.robot svg{width:84px;height:64px}
+
+/* app tour */
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:8px}
+.apps .card{padding:10px 12px;gap:3px}
+.apps h4{font-size:.92rem}
+.apps p{font-size:.8rem;line-height:1.6}
+
+/* conditions matrix */
+.cm{border-collapse:collapse;width:100%;font-size:.86rem}
+.cm th,.cm td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:center}
+.cm th{font-weight:500;color:var(--muted);font-size:.78rem}
+.cm td:first-child,.cm th:first-child{text-align:start}
+.y{color:var(--r);font-weight:700}.w{color:var(--a);font-weight:700}
+
+/* reveal */
+details.rv{border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+details.rv summary{cursor:pointer;padding:10px 14px;font-weight:500;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.rv summary::-webkit-details-marker{display:none}
+details.rv summary::before{content:"+";font-family:var(--f-mono);color:var(--accent);font-weight:700}
+details.rv[open] summary::before{content:"−"}
+details.rv .ans{padding:0 14px 12px 14px;display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:10px;margin-inline:0}
+
+.cheat{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:8px}
+.cheat .card{gap:2px;padding:10px 12px}
+.cheat .card b{font-size:.95rem}
+
+.endbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px}
+.endbar .btn.done{background:var(--r);border-color:var(--r)}
+
+/* L3 */
+.rg{direction:ltr;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:100%;max-width:340px}
+.rc{aspect-ratio:1;border-radius:9px;background:var(--sunk);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:var(--f-mono);position:relative;padding:0;color:var(--ink);min-width:0;line-height:1.15}
+.rc .ar{font-size:1.35rem;color:var(--a);font-weight:700}
+.rc .vv{font-size:.78rem}
+.rc.star{background:color-mix(in srgb,var(--r) 22%,var(--surface));border-color:var(--r)}
+.rc.star .ar{color:var(--r)}
+.rc.bomb{border:2px solid var(--neg)}
+.rc .bm{position:absolute;top:1px;inset-inline-start:4px;font-style:normal;font-size:.8rem;color:var(--neg)}
+.rc.start::after{content:"start";position:absolute;bottom:1px;font-size:.55rem;color:var(--muted)}
+.rc.here{box-shadow:0 0 0 3px var(--s)}
+.rc.sel{box-shadow:0 0 0 3px var(--accent)}
+button.rc{cursor:pointer;font-size:inherit}
+.rgame{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:20px;align-items:start}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:4px 14px;font-size:.9rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.hist2{direction:ltr;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;align-items:end;height:130px}
+.hist2 div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;height:100%;font-family:var(--f-mono);font-size:.62rem;color:var(--muted)}
+.hist2 i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;opacity:.85}
+.chips2{display:flex;flex-wrap:wrap;gap:4px;direction:ltr;align-items:center;font-size:.8rem;color:var(--muted)}
+.chips2 span{font-family:var(--f-mono);font-size:.75rem;padding:0 7px;border-radius:6px;background:var(--sunk)}
+.tree{width:100%;max-width:560px;height:auto;display:block;margin-inline:auto}
+input[type=number]{font:inherit;font-family:var(--f-mono);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:3px 8px;width:96px}
+@media (max-width:860px){.rgame{grid-template-columns:minmax(0,1fr)}}
+
+/* narration */
+.say{margin-inline-start:auto;flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 12px 3px 10px;font-size:.82rem;color:var(--accent);align-self:center}
+.say svg,.pl-ctl svg,.listen svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.say.on{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.listen{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:5px 16px;font-weight:500;font-size:.92rem}
+.listen.on{background:var(--accent);color:var(--surface)}
+.scene.speaking{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+.player{position:fixed;inset:auto 0 0 0;z-index:20;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 24px color-mix(in srgb,var(--ink) 10%,transparent);padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.pl-in{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.pl-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pl-cap{flex:1;min-width:0;font-size:.95rem;line-height:1.7}
+.pl-where{display:block;font-size:.75rem;color:var(--accent);font-weight:600}
+.pl-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pl-ctl button{border:1px solid var(--line);background:var(--bg);border-radius:9px;width:38px;height:36px;display:grid;place-items:center;color:var(--ink)}
+.pl-ctl button.main{background:var(--accent);border-color:var(--accent);color:var(--surface);width:46px}
+.pl-ctl select{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;height:36px;padding:0 6px}
+.pl-set{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:8px;font-size:.86rem}
+.pl-set select{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:4px 6px;max-width:100%}
+body.playing .wrap{padding-bottom:190px}
+.pl-bar{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.pl-bar input{flex:1;accent-color:var(--accent);min-width:0}
+
+@media (max-width:860px){
+  .chapter{grid-template-columns:minmax(0,1fr)}
+  .toc{display:none}
+  .loopbox,.game,.mc{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:420px){
+  .tg{grid-template-columns:22px repeat(4,54px);grid-template-rows:20px repeat(3,54px)}
+  .robot{grid-template-columns:minmax(0,1fr)}
+  .barrow{grid-template-columns:92px minmax(0,1fr) 50px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap" dir="rtl">
+
+<header class="top">
+  <div class="brand">
+    <h1>حكاية <span class="loopmark">RL</span></h1>
+    <p>DSAI 402 · كل lecture chapter، وكل chapter بيكمّل على اللي قبله لحد الـ big picture.</p>
+  </div>
+  <div class="legend" aria-label="ألوان الرموز">
+    <span class="tag tS">state</span><span class="tag tA">action</span><span class="tag tR">reward</span><span class="tag tN">penalty</span><span class="tag tG">γ discount</span>
+  </div>
+</header>
+
+<nav class="map" id="map" aria-label="الـ chapters"></nav>
+
+<!-- ======================= CHAPTER 1 ======================= -->
+<article class="chapter" id="ch-l1" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">LECTURE 1 · WHY RL</span>
+      <h2>إمتى أصلاً نحتاج RL؟</h2>
+      <p>قبل أي معادلة: نوع المشاكل اللي RL اتعمل عشانه، وإمتى يبقى أداة غلط. في الامتحان ممكن يدّوك مشكلة ويسألوك: RL ينفع هنا؟ وليه؟</p>
+    </div>
+
+    <section class="scene" id="l1-1" data-t="أربع قرارات">
+      <div class="sh"><span class="n">1</span><h3>أربع قرارات، والإجابة بتيجي متأخر</h3></div>
+      <p class="lead">بص على المواقف دي. في كل واحد لازم تاخد decision <b>دلوقتي</b>، بس مش هتعرف كانت صح ولا غلط غير بعدين بكتير.</p>
+      <div class="grid2">
+        <div class="card"><h4>ICU</h4><p class="small">كمية الـ fluid والـ vasopressor للمريض الساعة دي.</p>
+          <div class="delay"><span class="dot" style="background:var(--a)"></span><span>دلوقتي</span><span class="bar"></span><span>بعد أيام</span><span class="dot" style="background:var(--r)"></span></div></div>
+        <div class="card"><h4>Go</h4><p class="small">تحط الـ stone الجاية فين.</p>
+          <div class="delay"><span class="dot" style="background:var(--a)"></span><span>دلوقتي</span><span class="bar"></span><span>بعد 200 move</span><span class="dot" style="background:var(--r)"></span></div></div>
+        <div class="card"><h4>Chip floorplan</h4><p class="small">تحط الـ block الجاي فين على الـ die.</p>
+          <div class="delay"><span class="dot" style="background:var(--a)"></span><span>دلوقتي</span><span class="bar"></span><span>بعد ما كل الـ blocks تتحط</span><span class="dot" style="background:var(--r)"></span></div></div>
+        <div class="card"><h4>Stratospheric balloon</h4><p class="small">تطلع ولا تنزل عشان تمسك wind تانية.</p>
+          <div class="delay"><span class="dot" style="background:var(--a)"></span><span>دلوقتي</span><span class="bar"></span><span>بعد ساعات</span><span class="dot" style="background:var(--r)"></span></div></div>
+      </div>
+      <p class="small">محدش يقدر يقولك الجرعة الصح لمريض الساعة 3 الفجر، ومحدش يقدر يحط label على move 37 إنها صح ولا غلط والماتش لسه شغال.</p>
+      <p class="bridge">الأربعة شكلهم مختلف خالص، بس فيهم أربع حاجات مشتركة. هي دي اللي بتخلّي المشكلة "RL problem".</p>
+    </section>
+
+    <section class="scene" id="l1-2" data-t="الأربع صفات">
+      <div class="sh"><span class="n">2</span><h3>الأربع صفات اللي بتعرّف RL problem</h3></div>
+      <div class="grid2">
+        <div class="card"><h4>1 · الـ feedback بيقيّمك، مش بيصحّحلك</h4>
+          <p class="small">بتعرف إن المريض عاش، بس عمرك ما بتعرف كان المفروض تدّي أنهي جرعة بدالها.</p>
+          <div class="row xs"><span class="tag tE">Supervised: "الإجابة الصح = B"</span><span class="tag tR">RL: "score = 7"</span></div></div>
+        <div class="card"><h4>2 · الـ score بيوصل متأخر</h4>
+          <p class="small">الـ move اللي خسّرتك الماتش ممكن تكون اتلعبت قبل 50 move من ما حد ياخد باله.</p>
+          <div class="delay"><span class="dot" style="background:var(--a)"></span><span>الغلطة</span><span class="bar"></span><span>الخسارة</span><span class="dot" style="background:var(--neg)"></span></div></div>
+        <div class="card"><h4>3 · اللي بتختاره بيغيّر اللي هتشوفه بعد كده</h4>
+          <p class="small">الـ balloon اللي نزلت النهارده هتصحى بكرة في wind تانية. الـ behavior بتاعك هو اللي بيكتب الـ training data الجاية.</p></div>
+        <div class="card"><h4>4 · لازم تجرّب حاجات مش متأكد منها</h4>
+          <p class="small">لو فضلت تكرر اللي نجح قبل كده بس، عمرك ما هتلاقي الحاجة اللي أحسن منه. ودي اسمها <b>exploration</b>.</p></div>
+      </div>
+      <p class="bridge">طب إزاي نوصف كل المشاكل دي بصورة واحدة؟ بالـ loop.</p>
+    </section>
+
+    <section class="scene" id="l1-3" data-t="The Loop">
+      <div class="sh"><span class="n">3</span><h3>الـ Loop: كل الكورس variation على الصورة دي</h3></div>
+      <p class="lead">الـ agent بيشوف الـ <span class="cS">state</span>، يختار <span class="cA">action</span>، والـ environment يرجّعله رقم (<span class="cR">reward</span>) و<span class="cS">state</span> جديدة. وبعدين نفس الحكاية تاني. دوس "الخطوة الجاية" وتابع.</p>
+      <div class="loopbox">
+        <svg viewBox="0 0 520 230" role="img" aria-label="Agent و Environment والأسهم بينهم" dir="ltr">
+          <rect x="20" y="70" width="150" height="90" rx="14" fill="var(--surface)" stroke="var(--ink)" stroke-width="2" id="lAg"/>
+          <text x="95" y="112" text-anchor="middle" class="svgt" fill="var(--ink)" font-weight="600">Agent</text>
+          <text x="95" y="136" text-anchor="middle" class="svgm" fill="var(--s)" id="lAgS">S₀ = (2,1)</text>
+          <rect x="350" y="70" width="150" height="90" rx="14" fill="var(--surface)" stroke="var(--ink)" stroke-width="2" id="lEn"/>
+          <text x="425" y="120" text-anchor="middle" class="svgt" fill="var(--ink)" font-weight="600">Environment</text>
+          <path id="pTop" d="M170,92 C230,22 290,22 350,92" fill="none" stroke="var(--a)" stroke-width="2.5"/>
+          <path d="M342,80 L350,92 L336,92" fill="none" stroke="var(--a)" stroke-width="2.5"/>
+          <path id="pBot" d="M350,138 C290,208 230,208 170,138" fill="none" stroke="var(--r)" stroke-width="2.5"/>
+          <path d="M178,150 L170,138 L184,138" fill="none" stroke="var(--r)" stroke-width="2.5"/>
+          <text x="260" y="30" text-anchor="middle" class="svgm" fill="var(--a)" id="lA">action Aₜ</text>
+          <text x="260" y="222" text-anchor="middle" class="svgm" fill="var(--r)" id="lR">reward Rₜ₊₁ + state Sₜ₊₁</text>
+          <circle id="lDot" r="7" cx="170" cy="92" fill="var(--ink)" opacity="0"/>
+        </svg>
+        <div class="lpanel">
+          <div class="step" id="lStep"></div>
+          <div class="row"><button class="btn" id="lNext">الخطوة الجاية</button><button class="btn ghost" id="lReset">من الأول</button></div>
+          <p class="xs small">المثال ده من لعبة الكنز اللي هتلعبها في Lecture 2.</p>
+        </div>
+      </div>
+      <div class="note"><b>الصعوبة الحقيقية</b>الـ loop نفسه سهل. الصعب إن الـ reward اللي جاي دلوقتي ممكن يكون نتيجة action اتاخد من زمان. لازم الـ agent يعرف يوزّع الـ credit على الـ actions القديمة، ودي اسمها <b>credit assignment</b>.</div>
+      <p class="bridge">يبقى RL شغلانة مختلفة عن الـ supervised learning اللي إحنا متعودين عليه. مختلفة إزاي بالظبط؟</p>
+    </section>
+
+    <section class="scene" id="l1-4" data-t="Supervised vs RL">
+      <div class="sh"><span class="n">4</span><h3>شغلانتين مختلفتين</h3></div>
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th></th><th>Supervised learning</th><th>Reinforcement learning</th></tr></thead>
+        <tbody>
+          <tr><td>بيدّوك إيه</td><td>pairs من input وإجابة صح</td><td>world تقدر تعمل فيه actions، ورقم بيقيّم ماشي إزاي</td></tr>
+          <tr><td>الـ data</td><td>ثابتة وإنت بتعمل training</td><td>محدش بيعمل label. الـ agent بيعمل action والـ world بترد، والردود دي هي الـ data</td></tr>
+          <tr><td>مثال</td><td>radiologist عمل label لـ 10,000 X-ray والـ model بيقلّده</td><td>balloon بتجرب تطلع وتنزل وتتعلم من المسافة</td></tr>
+          <tr><td>السؤال</td><td><b>"ده إيه؟"</b></td><td><b>"أعمل إيه دلوقتي؟"</b></td></tr>
+          <tr><td>النجاح</td><td>تطابق الـ label</td><td>تجمع reward أكتر على مدار الوقت</td></tr>
+        </tbody>
+      </table></div>
+      <p class="bridge">ومش معنى إن RL قوي إنه ينفع في كل حاجة. اعرف إمتى متستخدموش.</p>
+    </section>
+
+    <section class="scene" id="l1-5" data-t="إمتى RL غلط؟">
+      <div class="sh"><span class="n">5</span><h3>إمتى RL يبقى الأداة الغلط</h3></div>
+      <p class="lead">إنك تعرف إمتى متستخدمش method جزء من إنك تفهمها. أربع علامات حمرا:</p>
+      <ul class="clean">
+        <li><b>عارف الإجابة الصح لكل input؟</b> يبقى عندك labels، استخدم supervised. أرخص وأسهل في الـ debugging.</li>
+        <li><b>الـ decision بتاعك مش بيغيّر اللي جاي؟</b> قرار واحد و feedback فوري يبقى <b>bandit</b>، وده أبسط بكتير من full RL.</li>
+        <li><b>الغلط وقت التعلّم غالي أو خطر، ومفيش simulator؟</b> الـ agent بيتعلم وهو بيغلط آلاف المرات. لازم تحدد هو مسموحله يغلط فين.</li>
+        <li><b>مش قادر تكتب reward تثق فيه؟</b> لو محدش عارف يقول يعني إيه "نتيجة كويسة"، المشكلة لسه مش جاهزة لـ RL.</li>
+      </ul>
+      <h4 style="margin-top:6px">جرّب: كل مشكلة دي تبقى إيه؟</h4>
+      <div class="qz" id="quiz1"></div>
+      <p class="score" id="quiz1s"></p>
+      <p class="bridge">الحالة الأخيرة فيها نقطة مهمة جداً: الـ reward نفسه. ده أخطر جزء في أي RL project.</p>
+    </section>
+
+    <section class="scene" id="l1-6" data-t="الـ reward هو الـ spec">
+      <div class="sh"><span class="n">6</span><h3>الـ agent بيعمل optimize للي إنت كتبته، مش للي إنت قصدته</h3></div>
+      <div class="robot">
+        <div class="card">
+          <svg viewBox="0 0 84 64" aria-hidden="true"><rect x="22" y="14" width="40" height="30" rx="8" fill="var(--sunk)" stroke="var(--ink)" stroke-width="2"/><circle cx="34" cy="28" r="3.5" fill="var(--ink)"/><circle cx="50" cy="28" r="3.5" fill="var(--ink)"/><rect x="18" y="46" width="48" height="8" rx="4" fill="var(--ink)"/><circle cx="12" cy="56" r="3" fill="var(--muted)"/><circle cx="74" cy="52" r="2" fill="var(--muted)"/></svg>
+          <b>الـ reward</b><p class="small">"خد point على كل كمية تراب بتلمّها"</p></div>
+        <div class="card">
+          <svg viewBox="0 0 84 64" aria-hidden="true"><rect x="8" y="16" width="30" height="24" rx="6" fill="var(--sunk)" stroke="var(--ink)" stroke-width="2"/><path d="M50 50 L70 22 L80 30 L60 58 Z" fill="color-mix(in srgb,var(--neg) 30%,var(--surface))" stroke="var(--neg)" stroke-width="2"/><circle cx="46" cy="58" r="2.5" fill="var(--muted)"/><circle cx="54" cy="61" r="2" fill="var(--muted)"/><circle cx="40" cy="60" r="2" fill="var(--muted)"/></svg>
+          <b>الـ policy اللي طلعت</b><p class="small">يوقّع سلة الزبالة، ويلمّ نفس التراب تاني... وتاني.</p></div>
+        <div class="card">
+          <svg viewBox="0 0 84 64" aria-hidden="true"><path d="M14 34 L32 50 L70 14" fill="none" stroke="var(--r)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <b>الـ robot مش بايظ</b><p class="small">هو حل بالظبط المشكلة اللي إنت كتبتها.</p></div>
+      </div>
+      <div class="note warn"><b>مهم</b>كتابة الـ reward مش خطوة صغيرة قبل الشغل الحقيقي. هي <b>أغلب الشغل</b>، وهي المكان اللي الـ projects في الكورس ده بتبوظ فيه عادةً. وعشان كده كل team محتاج mentor من مجال المشكلة: هو اللي هياخد باله من السلة المقلوبة قبلك.</div>
+      <p class="small">لقدّام: في week 13 هنشوف RLHF. هناك محدش بيقدر يكتب الـ reward، فبنتعلّمه من مقارنات بني آدمين.</p>
+      <p class="bridge">طب RL نجح فعلاً فين؟</p>
+    </section>
+
+    <section class="scene" id="l1-7" data-t="الـ Applications">
+      <div class="sh"><span class="n">7</span><h3>جولة في الـ applications</h3></div>
+      <p class="lead">كل application هنا اتكتب بنفس الطريقة: الـ <span class="cA">action</span> إيه، والـ <span class="cR">reward</span> إيه. اتعوّد تشوف أي مشكلة كده.</p>
+      <div class="apps" id="apps"></div>
+      <p class="bridge">لو بصّيت عليهم كويس، هتلاقي النجاحات مش متوزعة بالعشوائي.</p>
+    </section>
+
+    <section class="scene" id="l1-8" data-t="شروط النجاح">
+      <div class="sh"><span class="n">8</span><h3>النجاحات بتتجمّع عند أربع شروط</h3></div>
+      <ol class="steps">
+        <li><div><b>الـ reward ممكن يتقاس.</b> click، score، survival flag. حد يقدر يحسب الرقم من غير خناق.</div></li>
+        <li><div><b>الغلط رخيص، أو فيه simulator.</b> الـ games والـ simulators بتخلّي الـ agent يغلط مليون مرة ببلاش. فريق الـ balloon عمل simulator للـ stratosphere الأول.</div></li>
+        <li><div><b>الـ decision بيتكرر.</b> ملايين visitors، آلاف games، control step كل كام millisecond.</div></li>
+        <li><div><b>فيه interaction كفاية تتعلم منه.</b> يا environment سريع، يا كومة كبيرة من logged decisions.</div></li>
+      </ol>
+      <div class="tblwrap"><table class="cm">
+        <thead><tr><th>Application</th><th>reward بيتقاس</th><th>غلط رخيص / simulator</th><th>بيتكرر</th><th>data كفاية</th></tr></thead>
+        <tbody>
+          <tr><td>AlphaGo</td><td class="y">✓</td><td class="y">✓ <span class="xs">self-play</span></td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Balloons</td><td class="y">✓</td><td class="y">✓ <span class="xs">simulator</span></td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Sepsis</td><td class="y">✓</td><td class="w">✗ <span class="xs">خطر على مرضى</span></td><td class="y">✓</td><td class="y">✓ <span class="xs">logged records</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="small">لاحظ الـ Sepsis: الشرط 2 مش متحقق، فاتعوّض بالشرط 4. اتعلموا من decisions متسجّلة قبل كده بدل ما يجرّبوا على مرضى.</p>
+      <p class="bridge">أي مشكلة هتختارها للـ project، اختبرها على الأربع شروط دول قبل ما تكتب أي code.</p>
+    </section>
+
+    <section class="scene" id="l1-9" data-t="الخلاصة + راجع نفسك">
+      <div class="sh"><span class="n">9</span><h3>الخلاصة وراجع نفسك</h3></div>
+      <ul class="clean">
+        <li>RL للمشاكل اللي الـ feedback فيها <b>بيقيّمك</b> مش بيصحّحك، والـ score بيوصل <b>متأخر</b>، والـ actions بتاعتك هي اللي بتحدد الـ data اللي هتشوفها.</li>
+        <li>المجال كله loop واحد: state ← action ← reward ← تاني. الـ methods بتختلف في إزاي بتحوّل الـ loop ده لـ policy أحسن.</li>
+        <li>الـ reward function هي الـ specification. agent "فاشل" غالباً نجح في الحاجة الغلط.</li>
+        <li>فيه نجاحات حقيقية، وفيه كومة مشاكل method أبسط بيكسب فيها. اتعلّم تفرّق.</li>
+      </ul>
+      <details class="rv"><summary>إيه الفرق بين feedback "بيقيّم" و feedback "بيصحّح"؟</summary><div class="ans">
+        <p>اللي بيصحّح (supervised) بيقولك الإجابة الصح كانت إيه. اللي بيقيّم (RL) بيدّيك رقم على اللي إنت عملته بس: "7 من 10"، ومش بيقولك كان المفروض تعمل إيه.</p></div></details>
+      <details class="rv"><summary>مشكلة: جرعة insulin لمريض سكر كل ساعة. RL ينفع؟ إيه الـ state والـ action والـ reward؟ وإيه الخطر؟</summary><div class="ans">
+        <p><span class="tag tS">state</span> مستوى السكر دلوقتي، آخر أكل، آخر جرعة، الوقت. <span class="tag tA">action</span> الجرعة الساعة دي. <span class="tag tR">reward</span> مثلاً +1 لما السكر يبقى في الـ range الطبيعي، و penalty كبير لـ hypoglycemia.</p>
+        <p>شكلها RL: القرار بيتكرر، والجرعة بتأثر على الساعات الجاية. بس الغلط خطر جداً، فمحتاج simulator أو logged data زي الـ Sepsis.</p></div></details>
+      <details class="rv"><summary>اختيار الإعلان اللي يظهر لكل زائر لموقع. full RL ولا bandit؟</summary><div class="ans">
+        <p>bandit. الإعلان اللي بتعرضه دلوقتي مش بيغيّر مين الزائر الجاي، فمفيش مستقبل تخطط له. أحسن action هو اللي الـ reward المتوقع بتاعه أعلى دلوقتي.</p></div></details>
+      <details class="rv"><summary>اكتب reward ممكن الـ agent "يغش" فيه.</summary><div class="ans">
+        <p>مثال: لعبة سباق والـ reward على كل checkpoint بتعدّي عليه. الـ agent ممكن يلف حوالين نفس الـ checkpoints للأبد ويجمع points ومايخلّصش السباق. ده نفس منطق سلة الزبالة.</p></div></details>
+    </section>
+
+    <div class="endbar"><span class="small">الـ chapter الجاي: نسمّي الحاجات دي بأساميها ونحطلها math.</span><div class="row"><button class="btn ghost donebtn" data-ch="l1">✓ خلصت الـ chapter ده</button><a class="btn" href="#l2" style="text-decoration:none">Lecture 2 ←</a></div></div>
+  </div>
+</article>
+
+<!-- ======================= CHAPTER 2 ======================= -->
+<article class="chapter" id="ch-l2" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">LECTURE 2 · RL BASICS</span>
+      <h2>اللغة: State, Action, Reward, Return, γ</h2>
+      <p>هنلعب الأول من غير ولا كلمة جديدة، وبعدين كل حاجة عملتها في اللعبة هتاخد اسمها والـ formula بتاعتها.</p>
+    </div>
+
+    <section class="scene" id="l2-1" data-t="العب الأول">
+      <div class="sh"><span class="n">1</span><h3>العب الأول: Treasure Grid 3×4</h3></div>
+      <p class="lead">إنت عند الدايرة الزرقا. في الـ grid فيه <b class="cR">كنز واحد (+10)</b> وكام <b class="cN">فخ (−5)</b>، والباقي 0. مش شايف الخريطة، وبتعرف المربع فيه إيه لما تقف عليه بس.</p>
+      <p class="small">معاك 5 moves. اللعبة بتخلص لما توصل للكنز أو الـ moves تخلص. الفخ بياخد منك −5 كل مرة ومش بيوقّف اللعبة. لو خبطت في الحيطة، الـ move بتضيع وبتاخد 0. تقدر تستخدم أسهم الكيبورد.</p>
+      <div class="game">
+        <div>
+          <div class="tg" id="tg" tabindex="0" aria-label="الـ grid. استخدم الأسهم للحركة"></div>
+          <div class="pad" id="pad">
+            <button class="u" data-d="Up">Up</button>
+            <button class="l" data-d="Left">Left</button><button class="d" data-d="Down">Down</button><button class="r" data-d="Right">Right</button>
+          </div>
+        </div>
+        <div class="glog">
+          <div class="hud">
+            <div class="box">moves فاضلة <b id="gMoves">5</b></div>
+            <div class="box">المجموع <b id="gTot">0</b></div>
+          </div>
+          <div class="trj" id="gTrj"></div>
+          <p id="gMsg" class="small"></p>
+          <div class="row"><button class="btn ghost" id="gReset">العب تاني</button><button class="btn ghost" id="gReveal">اكشف الخريطة</button></div>
+        </div>
+      </div>
+      <p class="small">السطر الرمادي ده بيتكتب وإنت بتلعب. هيبقى ليه معنى بعد مشهدين.</p>
+      <p class="bridge">جاوب في دماغك: كل دور كنت بتختار إيه؟ الاختيار ده كان معتمد على إيه؟ وكنت بتاخد إيه بعد كل move؟</p>
+    </section>
+
+    <section class="scene" id="l2-2" data-t="الخمس كلمات">
+      <div class="sh"><span class="n">2</span><h3>إنت استخدمت الخمس حاجات من غير ما تاخد بالك</h3></div>
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th>السؤال</th><th>في اللعبة</th><th>الاسم</th></tr></thead>
+        <tbody>
+          <tr><td>مين بياخد القرار؟</td><td>إنت (الـ team)</td><td><b>Agent</b></td></tr>
+          <tr><td>إيه اللي بيرد عليه؟</td><td>الـ grid والفخاخ والكنز</td><td><b>Environment</b></td></tr>
+          <tr><td>القرار معتمد على إيه؟</td><td>إنت فين + فاضلّك كام move</td><td><span class="tag tS">State <span class="m">S<sub>t</sub></span></span></td></tr>
+          <tr><td>كنت بتختار إيه؟</td><td>Up / Down / Left / Right</td><td><span class="tag tA">Action <span class="m">A<sub>t</sub></span></span></td></tr>
+          <tr><td>بتاخد إيه بعد كل move؟</td><td>+10 أو −5 أو 0</td><td><span class="tag tR">Reward <span class="m">R<sub>t+1</sub></span></span></td></tr>
+        </tbody>
+      </table></div>
+      <p><b>State</b> = الحقائق اللي بتحدد إيه اللي ممكن يحصل بعد كده، في اللحظة <span class="m">t</span>.</p>
+      <div class="note warn"><b>أشهر غلطة للمبتدئين</b>الـ reward هو feedback على <b>step واحدة</b>، مش حكم على الـ episode كلها.</div>
+      <p class="bridge">نحط الخمسة دول ورا بعض على خط الزمن.</p>
+    </section>
+
+    <section class="scene" id="l2-3" data-t="الـ Interaction Loop">
+      <div class="sh"><span class="n">3</span><h3>الـ Loop كـ sequence: الـ trajectory</h3></div>
+      <p class="lead">تبدأ في state، تعمل action، تاخد reward، وتوصل لـ state جديدة. وتكرّر:</p>
+      <div class="mb"><span class="cS">S<sub>0</sub></span> <span class="cA">→A<sub>0</sub>→</span> <span class="cR">R<sub>1</sub></span>, <span class="cS">S<sub>1</sub></span> <span class="cA">→A<sub>1</sub>→</span> <span class="cR">R<sub>2</sub></span>, <span class="cS">S<sub>2</sub></span> <span class="cA">→A<sub>2</sub>→</span> <span class="cR">R<sub>3</sub></span>, <span class="cS">S<sub>3</sub></span> …</div>
+      <p>دي بالظبط السطر الرمادي اللي اتكتب وإنت بتلعب. ده الـ trajectory بتاعك:</p>
+      <div class="trj" id="gTrj2"></div>
+      <div class="note"><b>ليه الـ reward رقمه t+1 مش t؟</b>الـ reward اللي بييجي بعد <span class="m">A<sub>t</sub></span> بيوصل <b>مع</b> الـ state الجديدة <span class="m">S<sub>t+1</sub></span>، يعني في الخطوة الجاية. فاسمه <span class="m">R<sub>t+1</sub></span>. الـ action رقم 0 بيجيب <span class="m">R<sub>1</sub></span>.</div>
+      <p class="bridge">طيب، فيه أكتر من طريق للكنز. نقارن طريقين ونشوف أنهي أحسن.</p>
+    </section>
+
+    <section class="scene" id="l2-4" data-t="Risky vs Safe">
+      <div class="sh"><span class="n">4</span><h3>طريق مخاطر وطريق آمن</h3></div>
+      <p class="small">دي الخريطة الحقيقية. اللي فوق الأسهم هو رقم الـ step.</p>
+      <div class="grid2">
+        <div class="card"><h4>Risky: 3 moves</h4>
+          <div class="pg"><div></div><div></div><div></div><div></div><div class="p">0</div><div class="t p">1 −5</div><div class="p">2</div><div class="g">3 ★</div><div></div><div></div><div class="t">−5</div><div></div></div>
+          <p class="small">Right, Right, Right، من وسط الفخ.</p>
+          <p>rewards: <span class="mono"><span class="cN">−5</span>, 0, <span class="cR">+10</span></span></p></div>
+        <div class="card"><h4>Safe: 5 moves</h4>
+          <div class="pg"><div class="p">1</div><div class="p">2</div><div class="p">3</div><div class="p">4</div><div class="p">0</div><div class="t">−5</div><div></div><div class="g">5 ★</div><div></div><div></div><div class="t">−5</div><div></div></div>
+          <p class="small">Up, Right, Right, Right, Down، ولفّ حوالين الفخاخ.</p>
+          <p>rewards: <span class="mono">0, 0, 0, 0, <span class="cR">+10</span></span></p></div>
+      </div>
+      <p class="bridge">عشان نقول "أحسن"، محتاجين رقم واحد للطريق كله، مش reward خطوة لوحدها. الرقم ده هو الـ Return.</p>
+    </section>
+
+    <section class="scene" id="l2-5" data-t="Return">
+      <div class="sh"><span class="n">5</span><h3>الـ Return: الهدف الحقيقي</h3></div>
+      <p class="lead"><b>Return <span class="m">G<sub>t</sub></span></b> = مجموع الـ rewards من اللحظة <span class="m">t</span> لحد الآخر، مش الـ step الجاية بس.</p>
+      <div class="mb">G<sub>t</sub> = <span class="cR">R<sub>t+1</sub></span> + <span class="cR">R<sub>t+2</sub></span> + <span class="cR">R<sub>t+3</sub></span> + …</div>
+      <div class="grid2">
+        <div class="card"><b>Risky</b><p class="mono" style="font-size:1rem">G₀ = −5 + 0 + 10 = <b>5</b></p></div>
+        <div class="card"><b>Safe</b><p class="mono" style="font-size:1rem">G₀ = 0 + 0 + 0 + 0 + 10 = <b class="cR">10</b></p></div>
+      </div>
+      <div class="note"><b>القاعدة</b>الـ agent هدفه يعمل maximize للـ <b>return</b>، مش لأي reward لوحده. +10 مغرية دلوقتي ممكن تبقى فكرة وحشة لو هتكلّفك −20 بعدين.</div>
+      <p class="bridge">بس فيه حاجة ناقصة: في الـ Return ده، كنز بعد خطوة زي كنز بعد 100 خطوة. هل ده منطقي؟</p>
+    </section>
+
+    <section class="scene" id="l2-6" data-t="Discounting γ">
+      <div class="sh"><span class="n">6</span><h3>الـ Discounting: الأقرب يسوى أكتر</h3></div>
+      <p class="lead">عادةً بيهمنا الـ reward اللي بييجي بدري أكتر. في اللعبة كان مهم بس عشان الـ moves ممكن تخلص. الـ discounting بيحط التفضيل ده جوه الـ formula عن قصد:</p>
+      <div class="mb">G<sub>t</sub> = R<sub>t+1</sub> + <span class="cG">γ</span>R<sub>t+2</sub> + <span class="cG">γ<sup>2</sup></span>R<sub>t+3</sub> + … ,&nbsp;&nbsp; 0 ≤ <span class="cG">γ</span> ≤ 1</div>
+      <p>كل reward بيتضرب في <span class="m cG">γ</span> أُس عدد الـ steps اللي قبله. حرّك الـ slider وشوف الأوزان بتعمل إيه:</p>
+      <div class="slider"><label for="gam">γ =</label><input type="range" id="gam" min="0" max="1" step="0.01" value="0.9"><output id="gamO">0.90</output></div>
+      <svg id="wchart" viewBox="0 0 520 150" style="width:100%;height:auto;max-width:620px" role="img" aria-label="أوزان γ أس k" dir="ltr"></svg>
+      <p class="small" id="wcap"></p>
+
+      <h4>الطريقين بالـ γ ده</h4>
+      <div class="tblwrap"><table class="gtab" id="gtab"></table></div>
+      <p class="small" id="gpaths"></p>
+
+      <h4>مثال الـ lecture: +10 بعد move واحدة ولا +12 بعد 10 moves؟</h4>
+      <div class="bars" id="vsbars"></div>
+      <p class="small" id="vscap"></p>
+      <ol class="steps">
+        <li><div>+10 بعد move واحدة: أول reward، فوزنه <span class="m">γ<sup>0</sup> = 1</span>، يعني <span class="mono">10 × 1 = 10</span>.</div></li>
+        <li><div>+12 بعد 10 moves: قبله 9 steps، فوزنه <span class="m">γ<sup>9</sup></span>. بـ <span class="m">γ = 0.9</span>: <span class="mono">0.9⁹ ≈ 0.387</span>.</div></li>
+        <li><div><span class="mono">12 × 0.387 ≈ 4.6</span>، وده أقل من 10. يبقى الـ reward الصغير القريب كسب.</div></li>
+      </ol>
+      <div class="grid2">
+        <div class="card"><b><span class="m cG">γ</span> قريبة من 0</b><p class="small">قصير النظر: الـ reward الجاي بس اللي فارق. لو <span class="m">γ = 0</span> يبقى <span class="m">G<sub>t</sub> = R<sub>t+1</sub></span> بالظبط.</p></div>
+        <div class="card"><b><span class="m cG">γ</span> قريبة من 1</b><p class="small">بعيد النظر: الـ reward البعيد يسوى تقريباً زي القريب.</p></div>
+        <div class="card"><b><span class="m cG">γ = 1</span></b><p class="small">ينفع بس لو اللعبة ليها نهاية زي الـ grid بتاعنا. غير كده الـ return ممكن يكبر لما لا نهاية.</p></div>
+      </div>
+      <p class="bridge">لحد دلوقتي بنفترض إن الـ state الحالية كفاية عشان نتوقع اللي جاي. الافتراض ده ليه اسم، وهو اللي شايل الكورس كله.</p>
+    </section>
+
+    <section class="scene" id="l2-7" data-t="Markov Property">
+      <div class="sh"><span class="n">7</span><h3>الـ Markov Property: الحاضر كفاية</h3></div>
+      <p class="lead">عشان تتوقع الـ move هتعمل إيه، محتاج الـ history كلها؟ ولا كفاية تعرف إنت فين، وفاضلّك كام move، وهتعمل أنهي move؟</p>
+      <div class="hist" id="hist"><span class="old">S₀</span><span class="old">A₀</span><span class="old">S₁</span><span class="old">A₁</span><span class="old">…</span><span class="old">S<sub>t−1</sub></span><span class="old">A<sub>t−1</sub></span><span class="now">S<sub>t</sub></span><span class="nowa">A<sub>t</sub></span><span class="ar">⟶</span><span>S<sub>t+1</sub>, R<sub>t+1</sub> ?</span></div>
+      <div class="row"><button class="btn ghost" id="histBtn">اشطب الـ history</button></div>
+      <div class="mb" style="font-size:1.05rem">P(S<sub>t+1</sub>, R<sub>t+1</sub> | S<sub>t</sub>, A<sub>t</sub>, S<sub>t−1</sub>, A<sub>t−1</sub>, …, S<sub>0</sub>, A<sub>0</sub>) = P(S<sub>t+1</sub>, R<sub>t+1</sub> | S<sub>t</sub>, A<sub>t</sub>)</div>
+      <p>يعني الـ state الحالية لخّصت كل اللي يهم من الماضي.</p>
+      <div class="note"><b>نقطة بيحبوا يسألوا فيها</b>في الـ grid، الـ state = المربع + الـ moves الفاضلة. اللي إنت <b>اكتشفته</b> عن الخريطة <b>مش جزء من الـ state</b>. ده "learning"، وده بالظبط شغل الـ RL algorithm على مدار games كتير.</div>
+      <div class="note warn"><b>ولو الافتراض ده باظ؟</b>بنصلّحه بإننا ندخّل الحتة المهمة من الماضي جوه الـ state. مثال: DQN بيحط آخر 4 frames من اللعبة في الـ state، عشان frame واحد مش بيوضّح الكورة رايحة فين.</div>
+      <p class="bridge">لو شيلنا الـ actions خالص وسيبنا states بتنتقل لبعض بالـ Markov property، يطلع أبسط model في الكورس.</p>
+    </section>
+
+    <section class="scene" id="l2-8" data-t="Markov Process">
+      <div class="sh"><span class="n">8</span><h3>الـ Markov Process: states من غير actions</h3></div>
+      <p class="lead">sequence من states الـ state الجاية فيها معتمدة على الحالية بس:</p>
+      <div class="mb" style="font-size:1.05rem">P(S<sub>t+1</sub> | S<sub>t</sub>, S<sub>t−1</sub>, …, S<sub>0</sub>) = P(S<sub>t+1</sub> | S<sub>t</sub>)</div>
+      <p>بيتوصف بحاجتين: <b>set of states <span class="m">S</span></b> و<b>transition matrix <span class="m">P</span></b> (احتمال الانتقال من state لـ state).</p>
+      <h4>مثال الـ lecture: الجو كل يوم</h4>
+      <p class="small"><b class="cA">S</b> = Sunny و<b class="cS">R</b> = Rainy. خلي بالك: <b>R</b> هنا Rainy مش reward. هنحسب الـ transition matrix من الـ data خطوة بخطوة:</p>
+      <div class="seq" id="seq"></div>
+      <div class="tally" id="tally">
+        <div data-k="SS">S→S<b>0</b></div><div data-k="SR">S→R<b>0</b></div><div data-k="RS">R→S<b>0</b></div><div data-k="RR">R→R<b>0</b></div>
+      </div>
+      <div class="row"><button class="btn" id="seqNext">الـ pair الجاي</button><button class="btn ghost" id="seqAll">احسب الكل</button><button class="btn ghost" id="seqReset">من الأول</button><span class="small" id="seqMsg"></span></div>
+      <div class="mc" id="mcOut" hidden>
+        <div>
+          <ol class="steps">
+            <li><div>من <b class="cA">S</b> طلع 6 انتقالات: 3 لـ S و3 لـ R، يعني <span class="mono">3/6 = 0.5</span> لكل واحد.</div></li>
+            <li><div>من <b class="cS">R</b> طلع 3 انتقالات: 2 لـ S و1 لـ R، يعني <span class="mono">2/3</span> و<span class="mono">1/3</span>.</div></li>
+            <li><div>كل صف في الـ matrix مجموعه لازم يبقى 1.</div></li>
+          </ol>
+          <table class="mat" style="margin-top:10px"><tr><th>from \ to</th><th>S</th><th>R</th></tr><tr><th>S</th><td>0.50</td><td>0.50</td></tr><tr><th>R</th><td>0.67</td><td>0.33</td></tr></table>
+        </div>
+        <svg viewBox="0 0 360 200" role="img" aria-label="رسمة الـ Markov chain" dir="ltr">
+          <circle cx="90" cy="110" r="38" fill="color-mix(in srgb,var(--a) 20%,var(--surface))" stroke="var(--a)" stroke-width="2.5"/>
+          <text x="90" y="117" text-anchor="middle" font-family="var(--f-mono)" font-weight="700" fill="var(--a)" font-size="20">S</text>
+          <circle cx="270" cy="110" r="38" fill="color-mix(in srgb,var(--s) 18%,var(--surface))" stroke="var(--s)" stroke-width="2.5"/>
+          <text x="270" y="117" text-anchor="middle" font-family="var(--f-mono)" font-weight="700" fill="var(--s)" font-size="20">R</text>
+          <path d="M120,88 C160,60 200,60 240,88" fill="none" stroke="var(--ink)" stroke-width="1.8"/><path d="M231,80 L240,88 L228,90" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
+          <text x="180" y="58" text-anchor="middle" font-family="var(--f-mono)" font-size="14" fill="var(--ink)">0.5</text>
+          <path d="M240,132 C200,160 160,160 120,132" fill="none" stroke="var(--ink)" stroke-width="1.8"/><path d="M129,140 L120,132 L132,130" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
+          <text x="180" y="176" text-anchor="middle" font-family="var(--f-mono)" font-size="14" fill="var(--ink)">0.67</text>
+          <path d="M70,78 C40,20 140,20 110,78" fill="none" stroke="var(--ink)" stroke-width="1.8"/><path d="M106,68 L110,78 L116,68" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
+          <text x="90" y="22" text-anchor="middle" font-family="var(--f-mono)" font-size="14" fill="var(--ink)">0.5</text>
+          <path d="M250,78 C220,20 320,20 290,78" fill="none" stroke="var(--ink)" stroke-width="1.8"/><path d="M286,68 L290,78 L296,68" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
+          <text x="270" y="22" text-anchor="middle" font-family="var(--f-mono)" font-size="14" fill="var(--ink)">0.33</text>
+        </svg>
+      </div>
+      <div class="row"><button class="btn ghost" id="simBtn">شغّل الـ chain 14 يوم</button></div>
+      <div class="seq" id="simOut"></div>
+      <div class="note"><b>والـ grid؟</b>لعبة الكنز تبقى Markov process لو ثبّتنا policy بتختار كل move من الـ state الحالية بس ومش بتتغير. الـ teams مالعبوش كده، لأنهم كانوا بيغيروا الخطة بعد كل اكتشاف.</div>
+      <p class="bridge">قبل ما نقفل: أول paper في الكورس (وهو في الامتحان). مشكلة شكلها RL بس طلعت أبسط.</p>
+    </section>
+
+    <section class="scene" id="l2-9" data-t="Paper: News Bandit">
+      <div class="sh"><span class="n">9</span><h3>Paper: News كـ Contextual Bandit</h3></div>
+      <p class="small mono" style="direction:ltr;text-align:left">Li, Chu, Langford, Schapire · "A Contextual-Bandit Approach to Personalized News Article Recommendation" · WWW 2010</p>
+      <p>بيختاروا أنهي خبر يتعرض لكل زائر على الـ Yahoo! Front Page.</p>
+      <div class="grid2">
+        <div class="card"><span class="tag tS">state / context</span><p class="small">features الزائر و features الأخبار المرشحة.</p></div>
+        <div class="card"><span class="tag tA">action</span><p class="small">أنهي خبر يتعرض.</p></div>
+        <div class="card"><span class="tag tR">reward</span><p class="small">1 لو الزائر عمل click، و0 لو لأ.</p></div>
+      </div>
+      <p>الـ algorithm اسمه <b>LinUCB</b>. اتجرّب offline على أكتر من <b>33 million</b> logged events، وجاب clicks أكتر بـ <b>12.5%</b> من bandit عادي بيتجاهل الـ context.</p>
+      <div class="note"><b>ليه bandit مش full RL؟</b>الخبر اللي بتعرضه مش بيغيّر مين الزائر الجاي. مفيش action بيجهّز مستقبل أحسن، فمفيش return تخطط له. أحسن action هو اللي الـ expected reward بتاعه أعلى <b>دلوقتي</b>. الصعب هنا إنك تعمل <b>exploration</b> كفاية عشان تلاقيه، ودي هترجع في lectures 5 و6.</div>
+      <p class="bridge">جرّب تطبّق الخمس كلمات على مشكلة جديدة.</p>
+    </section>
+
+    <section class="scene" id="l2-10" data-t="Practice: Thermostat">
+      <div class="sh"><span class="n">10</span><h3>Practice: thermostat بيتعلم إنت مرتاح على إيه</h3></div>
+      <ul class="clean small">
+        <li>بيراقب درجة حرارة الأوضة والوقت في اليوم.</li>
+        <li>يقدر يعلّي أو يوطّي الـ target temperature.</li>
+        <li>لو حر، إنت بترجّعه تاني. لو مرتاح، بتسيبه.</li>
+      </ul>
+      <p class="small">حدد الخمسة في دماغك الأول، وبعدين افتح:</p>
+      <div class="grid2">
+        <details class="rv"><summary>Agent</summary><div class="ans"><p>الـ thermostat (الـ controller اللي بياخد القرار).</p></div></details>
+        <details class="rv"><summary>Environment</summary><div class="ans"><p>الأوضة، والجو برّه، <b>وإنت</b>. إنت جزء من الـ environment لأنك بترد على الـ actions.</p></div></details>
+        <details class="rv"><summary><span class="cS">State</span></summary><div class="ans"><p>درجة حرارة الأوضة + الوقت في اليوم.</p></div></details>
+        <details class="rv"><summary><span class="cA">Action</span></summary><div class="ans"><p>يعلّي الـ target، أو يوطّيه، أو يسيبه زي ما هو.</p></div></details>
+        <details class="rv"><summary><span class="cR">Reward</span></summary><div class="ans"><p>مثلاً −1 كل ما إنت تعدّله بإيدك، و0 لو سبته. يعني الـ reward بيعاقبه على إزعاجك.</p></div></details>
+      </div>
+      <p class="bridge">الخلاصة: الكلمات اللي هنستخدمها لحد آخر الكورس.</p>
+    </section>
+
+    <section class="scene" id="l2-11" data-t="الخلاصة + راجع نفسك">
+      <div class="sh"><span class="n">11</span><h3>الخلاصة: 8 كلمات</h3></div>
+      <div class="cheat">
+        <div class="card"><b>Agent</b><span class="small">اللي بياخد القرار</span></div>
+        <div class="card"><b>Environment</b><span class="small">كل حاجة بيتعامل معاها</span></div>
+        <div class="card"><b class="cS">State <span class="m">S<sub>t</sub></span></b><span class="small">الموقف في اللحظة t</span></div>
+        <div class="card"><b class="cA">Action <span class="m">A<sub>t</sub></span></b><span class="small">اختيار في state</span></div>
+        <div class="card"><b class="cR">Reward <span class="m">R<sub>t+1</sub></span></b><span class="small">feedback بعد step واحدة</span></div>
+        <div class="card"><b>Return <span class="m">G<sub>t</sub></span></b><span class="small">مجموع الـ reward من دلوقتي لقدام</span></div>
+        <div class="card"><b class="cG">Discount <span class="m">γ</span></b><span class="small">الـ reward البعيد يسوى قد إيه النهارده</span></div>
+        <div class="card"><b>Markov property</b><span class="small">الـ state لخّصت الماضي</span></div>
+      </div>
+      <h4>راجع نفسك (أسئلة شبه الامتحان)</h4>
+      <details class="rv"><summary>احسب <span class="m">G<sub>0</sub></span> لو الـ rewards هي 2, 0, −1, 5 و<span class="m">γ = 0.5</span>.</summary><div class="ans">
+        <ol class="steps">
+          <li><div>الأوزان: <span class="mono">γ⁰=1, γ¹=0.5, γ²=0.25, γ³=0.125</span></div></li>
+          <li><div>اضرب: <span class="mono">2×1 = 2</span> · <span class="mono">0×0.5 = 0</span> · <span class="mono">−1×0.25 = −0.25</span> · <span class="mono">5×0.125 = 0.625</span></div></li>
+          <li><div>اجمع: <span class="mono">2 + 0 − 0.25 + 0.625 = <b>2.375</b></span></div></li>
+        </ol></div></details>
+      <details class="rv"><summary>إيه معنى <span class="m">γ = 0</span>؟ وليه <span class="m">γ = 1</span> مينفعش في task مالهاش نهاية؟</summary><div class="ans">
+        <p><span class="m">γ = 0</span>: كل الأوزان بعد الأول بقت صفر، يعني <span class="m">G<sub>t</sub> = R<sub>t+1</sub></span>، والـ agent مش شايف غير الـ step الجاية.</p>
+        <p><span class="m">γ = 1</span> في task مستمرة: بتجمع rewards للأبد من غير ما تصغر، فالمجموع ممكن يبقى ما لا نهاية، ومينفعش تقارن بيه.</p></div></details>
+      <details class="rv"><summary>في لعبة الكنز: هل "أنا عرفت إن (2,2) فيها فخ" جزء من الـ state؟</summary><div class="ans">
+        <p>لأ. الـ state = المربع + الـ moves الفاضلة، ودي اللي بتحدد الـ move هتعمل إيه. معرفة الخريطة دي learning بيحصل على مدار games كتير، وده شغل الـ algorithm.</p></div></details>
+      <details class="rv"><summary>ليه الـ reward بعد <span class="m">A<sub>t</sub></span> اسمه <span class="m">R<sub>t+1</sub></span>؟</summary><div class="ans">
+        <p>لأنه بيوصل مع الـ state الجديدة <span class="m">S<sub>t+1</sub></span> في الخطوة اللي بعدها. الـ trajectory: <span class="m">S<sub>0</sub>, A<sub>0</sub>, R<sub>1</sub>, S<sub>1</sub>, A<sub>1</sub>, R<sub>2</sub>, …</span></p></div></details>
+      <details class="rv"><summary>الطريق الـ risky والـ safe: فيه قيمة <span class="m">γ</span> تخلّي الـ risky أحسن؟</summary><div class="ans">
+        <p>لأ. الفرق = <span class="mono">10γ⁴ − (−5 + 10γ²) = 10γ⁴ − 10γ² + 5</span>، وأقل قيمة ليه 2.5 (عند <span class="mono">γ² = 0.5</span>)، يعني دايماً موجب والـ safe دايماً أحسن. عشان كده الـ lecture استخدمت مثال +10 و+12 عشان تورّي إن الترتيب ممكن يتقلب.</p></div></details>
+      <details class="rv"><summary>اكتب الـ transition matrix للـ sequence دي: S S S R R S</summary><div class="ans">
+        <p>الـ pairs: SS, SS, SR, RR, RS. من S: 3 انتقالات (2 SS و1 SR)، يعني <span class="mono">P(S|S)=2/3, P(R|S)=1/3</span>. من R: انتقالين (1 RR و1 RS)، يعني <span class="mono">0.5, 0.5</span>.</p></div></details>
+    </section>
+
+    <div class="endbar"><span class="small">الجاي في Lecture 3: نضيف الـ actions للـ Markov process فيبقى <b>MDP</b>، ونسأل: كل state تسوى قد إيه؟</span><div class="row"><button class="btn ghost donebtn" data-ch="l2">✓ خلصت الـ chapter ده</button><a class="btn ghost" href="#l1" style="text-decoration:none">→ Lecture 1</a><a class="btn" href="#l3" style="text-decoration:none">Lecture 3 ←</a></div></div>
+  </div>
+</article>
+
+<!-- ======================= CHAPTER 3 ======================= -->
+<article class="chapter" id="ch-l3" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">LECTURE 3 · MDP</span>
+      <h2>الـ MDP: الـ agent بيختار والـ world بيرد</h2>
+      <p>هنلعب robot على أرض بتزحلق، وبعدين كل حاجة عملتها هتاخد اسمها: policy, return, value. وفي الآخر نوصل لمعادلة Bellman، اللي الكورس كله مبني عليها.</p>
+    </div>
+
+    <section class="scene" id="l3-1" data-t="Robot على أرض بتزحلق">
+      <div class="sh"><span class="n">1</span><h3>العب الأول: robot على أرض بتزحلق</h3></div>
+      <p class="lead">الـ robot بيبدأ من <b>start</b> وعايز يوصل للنجمة <b class="cR">★</b>. الخريطة قدامك كلها، وكل مربع عليه <span class="cA">سهم</span>. الـ robot بيمشي ورا السهم، بس النرد بيتدخل:</p>
+      <div class="grid2">
+        <div class="card"><b>نرد 1 لـ 4</b><span class="small">يمشي في اتجاه السهم.</span></div>
+        <div class="card"><b>نرد 5</b><span class="small">يلف 90° شمال، وبعدين يمشي.</span></div>
+        <div class="card"><b>نرد 6</b><span class="small">يلف 90° يمين، وبعدين يمشي.</span></div>
+        <div class="card"><b>النقط</b><span class="small"><span class="cN">−1</span> لكل move · <span class="cN">−5</span> زيادة لو نزل على القنبلة <span class="cN">✸</span> · <span class="cR">+10</span> للنجمة. لو خبط في حيطة يفضل مكانه ويدفع −1.</span></div>
+      </div>
+      <div class="rgame">
+        <div id="r1grid"></div>
+        <div class="glog">
+          <div class="seg" id="r1pol" role="group" aria-label="الأسهم">
+            <button type="button" data-p="best" aria-pressed="true">الأسهم الأحسن</button>
+            <button type="button" data-p="naive" aria-pressed="false">أسهم ساذجة (بخط مستقيم)</button>
+          </div>
+          <div class="hud">
+            <div class="box">آخر نرد <b id="r1die">–</b></div>
+            <div class="box">مجموع الـ round <b id="r1tot">0</b></div>
+            <div class="box">عدد الـ rounds <b id="r1n">0</b></div>
+            <div class="box">المتوسط <b id="r1avg">–</b></div>
+          </div>
+          <div class="row">
+            <button class="btn" id="r1roll">ارمي النرد (move واحدة)</button>
+            <button class="btn ghost" id="r1fin">كمّل الـ round</button>
+            <button class="btn ghost" id="r1x100">×100 round</button>
+            <button class="btn ghost" id="r1x10k">×10,000 round</button>
+          </div>
+          <div class="tblwrap" style="max-height:210px;overflow-y:auto"><table class="gtab" id="r1log"></table></div>
+        </div>
+      </div>
+      <h4>توزيع مجموع النقط في كل الـ rounds</h4>
+      <div class="hist2" id="r1hist" aria-label="توزيع المجموعات"></div>
+      <div class="chips2" id="r1last"></div>
+      <p class="small" id="r1msg"></p>
+      <p class="bridge">كل round طلع رقم مختلف، بس المتوسط ثابت. الرقم الثابت ده هو اللي بيقيّم الأسهم، فهو اللي محتاجين اسم له.</p>
+    </section>
+
+    <section class="scene" id="l3-2" data-t="الأسماء">
+      <div class="sh"><span class="n">2</span><h3>إنت استخدمت كل ده من غير ما تاخد بالك</h3></div>
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th>اللي عملته</th><th>الاسم</th><th>الرمز</th></tr></thead>
+        <tbody>
+          <tr><td>الأسهم اللي كتبتها في كل مربع</td><td><b>Policy</b></td><td><span class="m">π(a | s)</span></td></tr>
+          <tr><td>جدول النرد والنقط (الـ world بترد إزاي)</td><td><b>Dynamics</b></td><td><span class="m">p(s′, r | s, a)</span></td></tr>
+          <tr><td>مجموع النقط في round واحد</td><td><b>Return</b></td><td><span class="m">G<sub>t</sub></span></td></tr>
+          <tr><td>متوسط المجموع على rounds كتير، لو بدأت من مربع معين</td><td><b>Value</b></td><td><span class="m">v<sub>π</sub>(s)</span></td></tr>
+          <tr><td>كنت عارف النرد والخريطة</td><td><b>Known model</b></td><td>–</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn"><b>الفرق اللي لازم يتحفظ</b>الـ <b>return</b> هو اللي حصل في run واحد. الـ <b>value</b> هو اللي بتتوقعه في المتوسط. مش نفس الحاجة.</div>
+      <p class="small">الـ known model بيستمر في lectures 3 و4. من lecture 5 لحد 7 مش هنعرف الـ dynamics ونتعلم من التجربة.</p>
+      <details class="rv"><summary>ليه الـ path لوحده مكانش كفاية؟</summary><div class="ans"><p>لأن النرد ممكن يزحلق الـ robot برّه الـ path، وهو مش بيسألك. فلازم سهم في <b>كل</b> مربع: يعني قاعدة تقول أعمل إيه في أي مكان. القاعدة دي هي الـ policy.</p></div></details>
+      <details class="rv"><summary>هل أحسن team في round 1 كسبت round 2؟ وإزاي نحكم على الأسهم؟</summary><div class="ans"><p>مش لازم. round واحد بيتأثر بالنرد. الحكم بيبقى على <b>المتوسط</b> على rounds كتير. ده اللي شوفته في الـ simulation فوق.</p></div></details>
+      <details class="rv"><summary>الأسبوع اللي فات قلنا لو ثبّتنا action واحد لكل state، الـ grid بيبقى Markov process. إنت عملت إيه؟</summary><div class="ans"><p>كل team ثبّت policy. بعد التثبيت مفيش اختيارات، فالـ MDP بيتحول لـ Markov process. وده بالظبط اللي بنقيّمه بالـ value.</p></div></details>
+      <p class="bridge">خلّينا نشوف الـ value دي لكل مربع، بالأسهم الأحسن.</p>
+    </section>
+
+    <section class="scene" id="l3-3" data-t="قيمة كل مربع">
+      <div class="sh"><span class="n">3</span><h3>الأسهم الأحسن وقيمة كل مربع</h3></div>
+      <p class="lead">كل رقم هو <b>متوسط المجموع</b> لو بدأت من المربع ده ومشيت بالأسهم. الأخضر قيمة عالية، والأحمر قيمة سالبة. دوس على مربع.</p>
+      <div class="rgame">
+        <div id="g3"></div>
+        <div class="glog">
+          <div class="note" id="g3msg"></div>
+          <ul class="clean small">
+            <li>المربعات اللي قيمتها أقل من صفر: في الركن الشمال تحت، بعيدة عن النجمة وقريبة من القنبلة.</li>
+            <li>مربع start قيمته <b class="mono">0.1</b>، وده الرقم اللي المتوسط كان بيقرّب له في الـ simulation.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="bridge">طيب الأرقام دي جت منين؟ مش لازم نلعب عشرين ألف round.</p>
+    </section>
+
+    <section class="scene" id="l3-4" data-t="القيمة من الجيران">
+      <div class="sh"><span class="n">4</span><h3>القيمة بتتبني من قيم الجيران</h3></div>
+      <p class="lead">دوس على أي مربع وشوف حسابه. الافتراضي هو المربع اللي فوق اليمين، وسهمه لتحت (مثال الـ lecture).</p>
+      <div class="rgame">
+        <div id="g4"></div>
+        <div class="glog" id="c4"></div>
+      </div>
+      <div class="note"><b>Bellman equation من غير اسم</b>قيمة المربع = متوسط (النقط اللي هتاخدها دلوقتي + قيمة المربع اللي هتوصله). ولو الـ robot ممكن يفضل في نفس المربع، <span class="m">v</span> بتظهر في الطرفين، فنجمّعها في ناحية ونحلّ.</div>
+      <p class="bridge">دلوقتي نكتب الحاجات دي رسمي. أول خطوة: إيه هو الـ MDP بالظبط.</p>
+    </section>
+
+    <section class="scene" id="l3-5" data-t="MDP والـ state">
+      <div class="sh"><span class="n">5</span><h3>من Markov Process لـ MDP</h3></div>
+      <p class="lead">الـ Markov process فيه states واحتمالات انتقال. الـ MDP بيزوّد عليه <b>اختيار</b> و<b>هدف</b>.</p>
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th>الحتة</th><th>الرمز</th><th>في لعبة الـ robot</th></tr></thead>
+        <tbody>
+          <tr><td>States</td><td><span class="m">𝒮</span></td><td>12 مربع (11 + النجمة)</td></tr>
+          <tr><td>Actions</td><td><span class="m">𝒜</span></td><td>الأسهم الأربعة ↑ ↓ ← →</td></tr>
+          <tr><td>Dynamics</td><td><span class="m">p(s′, r | s, a)</span></td><td>جدول النرد مع النقط</td></tr>
+          <tr><td>Reward</td><td><span class="m">r</span></td><td>−1 لكل move، −5 للقنبلة، +10 للنجمة</td></tr>
+          <tr><td>Discount</td><td><span class="m">γ ∈ [0,1]</span></td><td>γ = 1، لأن كل round بتخلص</td></tr>
+        </tbody>
+      </table></div>
+      <p>الـ agent بيختار <span class="m cA">A<sub>t</sub></span>. الـ environment هو اللي بيختار <span class="m cS">S<sub>t+1</sub></span> و<span class="m cR">R<sub>t+1</sub></span> باستخدام <span class="m">p</span>.</p>
+      <h4>الـ state قرار تصميم</h4>
+      <p class="small">لو الـ agent محتاج حاجة مش في الـ state، المشكلة لسه مش MDP. جرّب:</p>
+      <div class="seg" id="frSeg"><button type="button" data-f="1" aria-pressed="true">frame واحدة</button><button type="button" data-f="4" aria-pressed="false">آخر 4 frames</button></div>
+      <svg viewBox="0 0 520 110" style="width:100%;max-width:560px;height:auto" dir="ltr" role="img" aria-label="كورة بتتحرك">
+        <line x1="20" y1="80" x2="500" y2="80" stroke="var(--line)" stroke-width="2"/>
+        <g id="fr1"><circle cx="300" cy="55" r="16" fill="var(--s)"/><text x="228" y="62" class="svgm" fill="var(--neg)" font-size="22">←</text><text x="338" y="62" class="svgm" fill="var(--neg)" font-size="22">→</text><text x="296" y="26" class="svgm" fill="var(--neg)" font-size="20">؟</text></g>
+        <g id="fr4" hidden><circle cx="130" cy="55" r="16" fill="var(--s)" opacity=".25"/><circle cx="200" cy="55" r="16" fill="var(--s)" opacity=".45"/><circle cx="270" cy="55" r="16" fill="var(--s)" opacity=".7"/><circle cx="340" cy="55" r="16" fill="var(--s)"/><path d="M370,55 L460,55" stroke="var(--r)" stroke-width="3"/><path d="M450,45 L462,55 L450,65" fill="none" stroke="var(--r)" stroke-width="3"/></g>
+      </svg>
+      <p class="small" id="frMsg"></p>
+      <p class="small">مثال تاني: في الشطرنج، الـ state الكاملة = وضع القطع + مين دوره + حقوق الـ castling والـ en passant. ولو اتنسى جزء منها، الـ state بتبقى ناقصة.</p>
+      <p class="bridge">والـ dynamics هي القلب. خلّينا نفتحها.</p>
+    </section>
+
+    <section class="scene" id="l3-6" data-t="الـ Dynamics">
+      <div class="sh"><span class="n">6</span><h3>الـ Dynamics: قاعدة الـ environment</h3></div>
+      <div class="mb">p(s′, r | s, a) = Pr{ S<sub>t+1</sub> = s′ , R<sub>t+1</sub> = r | S<sub>t</sub> = s , A<sub>t</sub> = a }</div>
+      <p>لكل زوج <span class="m">(s, a)</span>، مجموع الاحتمالات = 1. ومنها بنطلّع رقمين بنستخدمهم طول الوقت: <span class="m">p(s′ | s, a)</span> (احتمال الوصول لـ s′ بس) و<span class="m">r(s, a)</span> (الـ reward المتوقع).</p>
+      <p class="small">اختار مربع وسهم، وشوف الجدول بيتكوّن إزاي:</p>
+      <div class="rgame">
+        <div id="g6"></div>
+        <div class="glog">
+          <div class="seg" id="a6" role="group" aria-label="الـ action"></div>
+          <div class="tblwrap"><table class="gtab" id="t6"></table></div>
+          <p class="small" id="m6"></p>
+        </div>
+      </div>
+      <p class="bridge">الـ dynamics بتقول إيه اللي ممكن يحصل. لكن إيه اللي إحنا عايزينه؟ ده شغل الـ reward.</p>
+    </section>
+
+    <section class="scene" id="l3-7" data-t="تصميم الـ reward">
+      <div class="sh"><span class="n">7</span><h3>الـ reward بيقول إيه، مش إزاي</h3></div>
+      <p class="lead">القاعدة: كافئ <b>النتيجة</b> اللي عايزها، مش الخطوات اللي إنت فاكرها هتوصّل ليها.</p>
+      <div class="grid2">
+        <div class="card"><h4>شطرنج</h4><p class="small"><span class="cR">+1</span> للفوز و<span class="cN">−1</span> للخسارة. ما تديش reward على أكل القطع، لأن الـ agent ممكن يتعلم يبدّل قطع كتير ويخسر.</p></div>
+        <div class="card"><h4>Cleaning robot</h4><p class="small">لو بياخد reward على كل حتة زبالة يلمّها، ممكن يتعلم يعمل زبالة أكتر.</p></div>
+      </div>
+      <h4>جرّب: كام نقطة على كل move؟</h4>
+      <p class="small">طريقين للنجمة: <b>قصير</b> بـ 3 moves، و<b>طويل</b> بـ 9 moves. الاتنين بيوصلوا وياخدوا +10.</p>
+      <div class="seg" id="cSel"><button type="button" data-c="-1" aria-pressed="true">−1 لكل move</button><button type="button" data-c="0" aria-pressed="false">0 لكل move</button><button type="button" data-c="1" aria-pressed="false">+1 لكل move</button></div>
+      <div class="bars" id="cBars"></div>
+      <p id="cMsg"></p>
+      <div class="note warn"><b>الـ agent هيلاقي أي shortcut</b>الـ reward بتسمح بيه. الـ mentor بتاع المشروع يقدر يلاقيه قبل الـ training. وفي week 4 الـ proposal لازم يقول الـ reward إيه وليه صعب يتغش.</div>
+      <p class="bridge">بعد ما حددنا الـ reward، نجمّعها على الزمن: الـ return.</p>
+    </section>
+
+    <section class="scene" id="l3-8" data-t="Return">
+      <div class="sh"><span class="n">8</span><h3>الـ Return، وشكله الـ recursive</h3></div>
+      <div class="mb">G<sub>t</sub> = R<sub>t+1</sub> + γ R<sub>t+2</sub> + γ<sup>2</sup> R<sub>t+3</sub> + … = Σ<sub>k=0</sub><sup>∞</sup> γ<sup>k</sup> R<sub>t+k+1</sub></div>
+      <p>وليه شكل تاني هنستخدمه في كل حتة:</p>
+      <div class="mb"><span class="cR">G<sub>t</sub></span> = <span class="cR">R<sub>t+1</sub></span> + <span class="cG">γ</span> G<sub>t+1</sub></div>
+      <p class="small">يعني الـ return دلوقتي = الـ reward الجاي + γ × الـ return اللي بعده. دوس واحسبها من الآخر لورا (rewards = 2, 0, −1, 5 و γ = 0.5):</p>
+      <div class="tblwrap"><table class="gtab" id="bkT"></table></div>
+      <div class="row"><button class="btn" id="bkNext">الخطوة الجاية</button><button class="btn ghost" id="bkReset">من الأول</button></div>
+      <p class="small" id="bkMsg"></p>
+      <h4>نوعين من الـ tasks</h4>
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th></th><th>Episodic</th><th>Continuing</th></tr></thead>
+        <tbody>
+          <tr><td>بتخلص؟</td><td>أيوه، في terminal state</td><td>لأ</td></tr>
+          <tr><td>أمثلة</td><td>لعبة Go، إقامة مريض في ICU، لعبة الـ robot</td><td>تحكم أسانسير، تبريد data center</td></tr>
+          <tr><td>الـ discount</td><td><span class="m">γ = 1</span> ينفع لو كل episode بتخلص</td><td>غالباً <span class="m">γ &lt; 1</span></td></tr>
+        </tbody>
+      </table></div>
+      <p>لو <span class="m">γ &lt; 1</span> والـ reward عمره ما يزيد عن <span class="m">R<sub>max</sub></span>، الـ return بيفضل محدود:</p>
+      <div class="mb">G<sub>t</sub> ≤ R<sub>max</sub> / (1 − γ)</div>
+      <div class="slider"><label for="gb">γ =</label><input type="range" id="gb" min="0" max="0.99" step="0.01" value="0.9"><output id="gbO">0.90</output></div>
+      <p class="small" id="gbMsg"></p>
+      <p class="small">γ صغيرة: الـ agent قصير النظر. γ قريبة من 1: بعيد النظر، بس غالباً أصعب في التعلم. ولو γ = 1 والـ task مش بتخلص (مثلاً أسهم بتلف في دايرة)، الـ return مش معرّف.</p>
+      <p class="bridge">دلوقتي لو عندنا return، إيه اللي بيختار الـ actions؟ الـ policy.</p>
+    </section>
+
+    <section class="scene" id="l3-9" data-t="Policies">
+      <div class="sh"><span class="n">9</span><h3>الـ Policy: قاعدة الـ agent</h3></div>
+      <div class="mb">π(a | s) = Pr{ A<sub>t</sub> = a | S<sub>t</sub> = s }</div>
+      <div class="seg" id="pSel"><button type="button" data-p="det" aria-pressed="true">Deterministic</button><button type="button" data-p="sto" aria-pressed="false">Stochastic</button><button type="button" data-p="rps" aria-pressed="false">حجر ورقة مقص</button></div>
+      <div class="bars" id="pBars"></div>
+      <p id="pMsg"></p>
+      <ul class="clean">
+        <li><b>Deterministic:</b> action واحد في كل state. أسهمك كانت كده.</li>
+        <li><b>Stochastic:</b> احتمال لكل action. بنستخدمها في الـ exploration أثناء التعلم، ولما الـ agent مش شايف الـ state كاملة، أو بيلعب ضد حد.</li>
+        <li>في MDP شايف كل حاجة، الـ deterministic policy كفاية عشان توصل لـ optimal.</li>
+      </ul>
+      <div class="note warn"><b>لخبطة شائعة</b>النرد مش جزء من الـ policy. النرد هو الـ <b>environment</b> (الـ dynamics). الـ policy هي اللي إنت كتبته: السهم.</div>
+      <p class="small"><b>هدف RL كله:</b> لاقي policy بتجيب أكبر expected return.</p>
+      <p class="bridge">وإزاي نقول إن policy أحسن من التانية؟ بنقيس قيمتها.</p>
+    </section>
+
+    <section class="scene" id="l3-10" data-t="v و q">
+      <div class="sh"><span class="n">10</span><h3>Value functions: <span class="m">v</span> و <span class="m">q</span></h3></div>
+      <div class="grid2">
+        <div class="card"><b class="cS">قيمة الـ state</b><div class="mb" style="font-size:1.1rem">v<sub>π</sub>(s) = E<sub>π</sub>[ G<sub>t</sub> | S<sub>t</sub> = s ]</div><span class="small">الـ return المتوقع لو بدأت من s ومشيت بـ π.</span></div>
+        <div class="card"><b class="cA">قيمة الـ action</b><div class="mb" style="font-size:1.1rem">q<sub>π</sub>(s,a) = E<sub>π</sub>[ G<sub>t</sub> | S<sub>t</sub> = s , A<sub>t</sub> = a ]</div><span class="small">الـ return المتوقع لو عملت a دلوقتي وبعدها مشيت بـ π.</span></div>
+      </div>
+      <p>والاتنين مربوطين:</p>
+      <div class="mb">v<sub>π</sub>(s) = Σ<sub>a</sub> π(a | s) q<sub>π</sub>(s, a)</div>
+      <p class="small">مثال: state فيها action واحد قيمته <span class="m">q<sub>1</sub> = 5</span> وتاني <span class="m">q<sub>2</sub> = 1</span>. حرّك احتمال اختيار الأول:</p>
+      <div class="slider"><label for="pv">π(a₁ | s) =</label><input type="range" id="pv" min="0" max="100" step="5" value="70"><output id="pvO">0.70</output></div>
+      <div class="bars" id="pvBars"></div>
+      <p class="small" id="pvMsg"></p>
+      <div class="note"><b>ليه محتاجين q وعندنا v؟</b>بـ q تقدر تختار أحسن action من غير ما تعرف الـ dynamics. وده سبب إن Q-learning بتشتغل بعدين.</div>
+      <p class="bridge">والقيمتين دول عندهم علاقة بالجيران، زي ما حسبنا في المشهد الرابع. هي دي Bellman.</p>
+    </section>
+
+    <section class="scene" id="l3-11" data-t="Bellman equation">
+      <div class="sh"><span class="n">11</span><h3>معادلة Bellman</h3></div>
+      <p class="lead">ابدأ من التعريف، وعوّض بـ <span class="m">G<sub>t</sub> = R<sub>t+1</sub> + γ G<sub>t+1</sub></span>:</p>
+      <div class="mb"><span class="cS">v<sub>π</sub>(s)</span> = <span class="cA">Σ<sub>a</sub> π(a|s)</span> <span class="cS">Σ<sub>s′,r</sub> p(s′,r|s,a)</span> [ <span class="cR">r</span> + <span class="cG">γ</span> <span class="cS">v<sub>π</sub>(s′)</span> ]</div>
+      <svg class="tree" viewBox="0 0 560 250" dir="ltr" role="img" aria-label="backup diagram">
+        <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+          <line x1="280" y1="50" x2="160" y2="103"/><line x1="280" y1="50" x2="400" y2="103"/>
+          <line x1="160" y1="117" x2="90" y2="194"/><line x1="160" y1="117" x2="230" y2="194"/>
+          <line x1="400" y1="117" x2="330" y2="194"/><line x1="400" y1="117" x2="470" y2="194"/>
+        </g>
+        <circle cx="280" cy="32" r="18" fill="var(--surface)" stroke="var(--s)" stroke-width="2.5"/><text x="280" y="38" text-anchor="middle" class="svgm" fill="var(--s)">s</text>
+        <text x="312" y="36" class="svgm" fill="var(--s)">v<tspan font-size="11" dy="4">π</tspan><tspan dy="-4">(s)</tspan></text>
+        <circle cx="160" cy="110" r="7" fill="var(--a)"/><circle cx="400" cy="110" r="7" fill="var(--a)"/>
+        <text x="193" y="72" text-anchor="middle" class="svgm" fill="var(--a)" font-size="13">π(a₁|s)</text>
+        <text x="367" y="72" text-anchor="middle" class="svgm" fill="var(--a)" font-size="13">π(a₂|s)</text>
+        <text x="130" y="128" text-anchor="end" class="svgm" fill="var(--a)" font-size="12">q(s,a₁)</text>
+        <text x="430" y="128" class="svgm" fill="var(--a)" font-size="12">q(s,a₂)</text>
+        <g class="svgm" fill="var(--r)" font-size="12">
+          <text x="100" y="158" text-anchor="end">p , r</text><text x="213" y="158">p , r</text><text x="316" y="158" text-anchor="end">p , r</text><text x="440" y="158">p , r</text>
+        </g>
+        <g fill="var(--surface)" stroke="var(--s)" stroke-width="2.2"><circle cx="90" cy="206" r="14"/><circle cx="230" cy="206" r="14"/><circle cx="330" cy="206" r="14"/><circle cx="470" cy="206" r="14"/></g>
+        <g class="svgm" fill="var(--s)" text-anchor="middle" font-size="13"><text x="90" y="211">s′</text><text x="230" y="211">s′</text><text x="330" y="211">s′</text><text x="470" y="211">s′</text></g>
+        <g class="svgm" fill="var(--muted)" text-anchor="middle" font-size="11"><text x="90" y="238">v(s′)</text><text x="230" y="238">v(s′)</text><text x="330" y="238">v(s′)</text><text x="470" y="238">v(s′)</text></g>
+      </svg>
+      <div class="grid2">
+        <div class="card"><span class="tag tA">Σ π(a|s)</span><span class="small">متوسط على اللي <b>أنا</b> ممكن أعمله.</span></div>
+        <div class="card"><span class="tag tS">Σ p(s′,r|s,a)</span><span class="small">متوسط على اللي <b>العالم</b> ممكن يعمله.</span></div>
+        <div class="card"><span class="tag tR">r</span> + <span class="tag tG">γ v(s′)</span><span class="small">الـ reward دلوقتي + قيمة اللي جاي مخصومة.</span></div>
+      </div>
+      <p class="small">ده نفس اللي عملناه على المربع اللي فوق اليمين، بس بسهم واحد وγ = 1. وبيدّيك معادلة لكل state: <span class="m">n</span> states يعني <span class="m">n</span> معادلات و<span class="m">n</span> مجاهيل.</p>
+      <h4>نسخة الـ q</h4>
+      <div class="mb"><span class="cA">q<sub>π</sub>(s,a)</span> = <span class="cS">Σ<sub>s′,r</sub> p(s′,r|s,a)</span> [ <span class="cR">r</span> + <span class="cG">γ</span> <span class="cA">Σ<sub>a′</sub> π(a′|s′) q<sub>π</sub>(s′,a′)</span> ]</div>
+      <p class="small">نفس الفكرة: قيمة الاختيار = reward دلوقتي + قيمة اللي جاي. هي أساس الـ dynamic programming الأسبوع الجاي، والـ temporal difference بعده.</p>
+      <p class="bridge">نحلّها بإيدينا على مثال صغير.</p>
+    </section>
+
+    <section class="scene" id="l3-12" data-t="حلّها بإيدك">
+      <div class="sh"><span class="n">12</span><h3>حلّ <span class="m">v<sub>π</sub></span> بإيدك: A و B</h3></div>
+      <p class="lead">state-ين A و B، و<span class="m cG">γ = 0.5</span> و policy ثابتة. من A: نص احتمال نفضل في A بـ reward 0، ونص احتمال نروح B بـ reward 2. ومن B بنروح A دايماً بـ reward 3.</p>
+      <div class="mb">v(A) = 0.5 ( 0 + 0.5 v(A) ) + 0.5 ( 2 + 0.5 v(B) )</div>
+      <div class="mb">v(B) = 3 + 0.5 v(A)</div>
+      <ol class="steps">
+        <li><div>عوّض <span class="m">v(B)</span> في الأولى: <span class="mono">0.75 v(A) = 1 + 0.25 (3 + 0.5 v(A)) = 1.75 + 0.125 v(A)</span>.</div></li>
+        <li><div><span class="mono">0.625 v(A) = 1.75</span> ، يعني <span class="mono"><b>v(A) = 2.8</b></span>.</div></li>
+        <li><div><span class="mono">v(B) = 3 + 0.5 × 2.8 = <b>4.4</b></span>.</div></li>
+        <li><div>تأكد: <span class="mono">0.5 (0 + 1.4) + 0.5 (2 + 2.2) = 2.8</span> ✓</div></li>
+      </ol>
+      <h4>جرّب بنفسك</h4>
+      <p class="small">اكتب أي أرقام وشوف الفرق بين طرفي كل معادلة. أو دوس sweep وخلّي الأرقام تقرب لوحدها.</p>
+      <div class="row">
+        <label>v(A) = <input type="number" id="abA" step="0.1" value="0"></label>
+        <label>v(B) = <input type="number" id="abB" step="0.1" value="0"></label>
+        <button class="btn" id="abSweep">sweep</button><button class="btn ghost" id="abZero">صفّر</button>
+      </div>
+      <div class="tblwrap"><table class="gtab" id="abTab"></table></div>
+      <p class="small" id="abMsg"></p>
+      <p class="small">في المسائل الكبيرة مش هنقدر نحلّها بإيدينا. الـ sweep ده هو فكرة الـ lecture الجاية (dynamic programming).</p>
+      <p class="bridge">كل ده لـ policy معينة. طب إيه أحسن policy ممكنة؟</p>
+    </section>
+
+    <section class="scene" id="l3-13" data-t="Optimal">
+      <div class="sh"><span class="n">13</span><h3>الـ Optimal policy ومعادلة Bellman optimality</h3></div>
+      <p><span class="m">π</span> أحسن من <span class="m">π′</span> لو <span class="m">v<sub>π</sub>(s) ≥ v<sub>π′</sub>(s)</span> في <b>كل</b> state.</p>
+      <div class="mb">v<sub>*</sub>(s) = max<sub>π</sub> v<sub>π</sub>(s) &nbsp;&nbsp; q<sub>*</sub>(s,a) = max<sub>π</sub> q<sub>π</sub>(s,a)</div>
+      <div class="grid2">
+        <div class="card"><b>1</b><span class="small">optimal policy بتبقى موجودة دايماً في أي MDP محدود.</span></div>
+        <div class="card"><b>2</b><span class="small">ممكن أكتر من واحدة، بس كلهم ليهم نفس <span class="m">v<sub>*</sub></span> و<span class="m">q<sub>*</sub></span>.</span></div>
+        <div class="card"><b>3</b><span class="small">واحدة منهم على الأقل deterministic.</span></div>
+      </div>
+      <div class="mb">v<sub>*</sub>(s) = <b class="cA">max<sub>a</sub></b> <span class="cS">Σ<sub>s′,r</sub> p(s′,r|s,a)</span> [ <span class="cR">r</span> + <span class="cG">γ</span> v<sub>*</sub>(s′) ]</div>
+      <div class="mb">q<sub>*</sub>(s,a) = <span class="cS">Σ<sub>s′,r</sub> p(s′,r|s,a)</span> [ <span class="cR">r</span> + <span class="cG">γ</span> <b class="cA">max<sub>a′</sub></b> q<sub>*</sub>(s′,a′) ]</div>
+      <p class="small">الـ <b>max</b> بيخلّي المعادلة nonlinear، فمش بنحلّها زي مثال A و B. دوس على مربع وشوف قيمة الأسهم الأربعة محسوبة من جيرانه:</p>
+      <div class="rgame">
+        <div id="g13"></div>
+        <div class="glog"><div class="bars" id="b13"></div><p id="m13"></p></div>
+      </div>
+      <div class="note"><b>إيه اللي ينفع بعد كده</b>لو عرفت <span class="m">v<sub>*</sub></span> و<span class="m">p</span>: أحسن action هو اللي يدّي أعلى قيمة في الـ bracket. ولو عرفت <span class="m">q<sub>*</sub></span>: هو <span class="m">argmax<sub>a</sub> q<sub>*</sub>(s,a)</span> ومش محتاج <span class="m">p</span> خالص.</div>
+      <p class="small">الـ lectures الجاية كلها طرق لإيجاد القيم دي، الأول لما نعرف <span class="m">p</span>، وبعدين لما منعرفهاش.</p>
+      <p class="bridge">قبل ما نقفل، الـ paper بتاع الأسبوع: MDP حقيقي على chip.</p>
+    </section>
+
+    <section class="scene" id="l3-14" data-t="Paper: Chip Floorplanning">
+      <div class="sh"><span class="n">14</span><h3>Paper: Chip Floorplanning كـ MDP (Nature 2021)</h3></div>
+      <p class="small mono" style="direction:ltr;text-align:left">Mirhoseini et al. · "A Graph Placement Methodology for Fast Chip Design" · Nature 2021</p>
+      <p>المطلوب: تقرا الـ <b>formulation</b> بس. الـ network والـ training هييجوا في الـ deep RL weeks. جاوب على الأسئلة بنفسك الأول:</p>
+      <ol class="clean small">
+        <li>إيه الـ state، وبتتكتب إزاي للـ neural network؟</li>
+        <li>إيه الـ action؟</li>
+        <li>الـ episode بتخلص إمتى؟</li>
+        <li>إيه الـ reward، وبييجي إمتى؟</li>
+        <li>الـ transition deterministic؟</li>
+        <li>كنت هتختار γ بكام وليه؟</li>
+        <li>إيه الجزء اللي جوه الـ MDP، وإيه اللي بيتعمل بأدوات تانية؟</li>
+        <li>مهندس بشري كان يقدر يكتب الـ reward مباشرة؟ ولا محتاج بديل للهدف الحقيقي؟</li>
+        <li>هتتأكد من إيه قبل ما تصدّق نتيجة زي دي؟</li>
+      </ol>
+      <details class="rv"><summary>إجابات مقترحة (من فهمي للـ paper، راجع التفاصيل معاه)</summary><div class="ans">
+        <p><b>1.</b> <span class="tag tS">state</span> الـ canvas بالـ blocks اللي اتحطت لحد دلوقتي + الـ netlist كـ graph (بيتحوّل لـ embeddings بـ graph neural network) + الـ block اللي دوره.</p>
+        <p><b>2.</b> <span class="tag tA">action</span> تختار مربع في الـ grid بتاع الـ canvas وتحط فيه الـ block الحالي. الـ blocks بتتحط واحد ورا التاني.</p>
+        <p><b>3.</b> لما كل الـ blocks تتحط.</p>
+        <p><b>4.</b> <span class="tag tR">reward</span> صفر طول الـ episode، وفي الآخر رقم سالب من طول الأسلاك والـ congestion (يعني كل ما كانوا أقل كان أحسن).</p>
+        <p><b>5.</b> أيوه deterministic: لما تحط الـ block في مربع، بيتحط فيه.</p>
+        <p><b>6.</b> γ = 1 منطقي: الـ episode محدودة، والـ reward بييجي في الآخر بس، فمفيش سبب نخصم.</p>
+        <p><b>7.</b> جوه الـ MDP: وضع الـ macros. برّه: وضع باقي الـ cells والـ routing والتحقق، بأدوات تانية.</p>
+        <p><b>8.</b> محتاج بديل. الهدف الحقيقي (power, performance, area) بيتقاس بعد flow كامل بياخد وقت طويل، فاستخدموا proxy سريع من طول الأسلاك والـ congestion.</p>
+        <p><b>9.</b> إن الـ proxy فعلاً بيتناسب مع النتيجة الحقيقية بعد الـ flow الكامل، وإن النتيجة متكررة على chips و seeds كتير، ومقارنتها بمهندسين و baselines قوية.</p>
+      </div></details>
+      <p class="bridge">وآخر محطة: أخطاء بتتكرر لما بتكتب MDP.</p>
+    </section>
+
+    <section class="scene" id="l3-15" data-t="أخطاء شائعة">
+      <div class="sh"><span class="n">15</span><h3>أخطاء شائعة لما بتكتب MDP</h3></div>
+      <ul class="clean small">
+        <li>الـ <b>state</b> ناقصة حاجة الـ agent محتاجها، فمش Markov.</li>
+        <li>الـ <b>reward</b> بتدفع على خطوة بدل الهدف، فالـ agent يلاقي shortcut.</li>
+        <li>الـ reward بتيجي في الآخر خالص، فمفيش حاجة يتعلم منها بدري.</li>
+        <li>الـ task مالهاش نهاية و<span class="m">γ = 1</span>، فالـ return ممكن يبقى infinite.</li>
+        <li>الـ <b>action space</b> ضخم (مثلاً layout كامل مرة واحدة) وكان ممكن يتقسم لاختيارات صغيرة.</li>
+        <li>الـ <b>indexing</b> غلط: الـ action في الوقت <span class="m">t</span> بيجيب <span class="m">R<sub>t+1</sub></span>.</li>
+      </ul>
+      <h4>جرّب: كل جملة فيها غلطة واحدة، هي أنهي؟</h4>
+      <div class="qz" id="quiz3"></div>
+      <p class="score" id="quiz3s"></p>
+      <p class="bridge">تمام. نجمّع الـ chapter.</p>
+    </section>
+
+    <section class="scene" id="l3-16" data-t="الخلاصة + راجع نفسك">
+      <div class="sh"><span class="n">16</span><h3>الخلاصة وراجع نفسك</h3></div>
+      <div class="cheat">
+        <div class="card"><b>MDP</b><span class="small">states, actions, dynamics, rewards, discount</span></div>
+        <div class="card"><b>Dynamics <span class="m">p(s′,r|s,a)</span></b><span class="small">الـ environment بترد إزاي</span></div>
+        <div class="card"><b>Policy <span class="m">π(a|s)</span></b><span class="small">القاعدة اللي بتختار الـ actions</span></div>
+        <div class="card"><b>Return <span class="m">G<sub>t</sub></span></b><span class="small">مجموع الـ rewards (مخصوم) في run واحد</span></div>
+        <div class="card"><b>Value <span class="m">v<sub>π</sub>(s)</span></b><span class="small">الـ return المتوقع من state تحت π</span></div>
+        <div class="card"><b>Action value <span class="m">q<sub>π</sub>(s,a)</span></b><span class="small">الـ return المتوقع بعد a في s</span></div>
+        <div class="card"><b>Bellman equation</b><span class="small">قيمة بدلالة قيم الـ states الجاية</span></div>
+        <div class="card"><b>Optimal policy</b><span class="small">أكبر قيمة في كل state</span></div>
+      </div>
+      <h4>راجع نفسك (أسئلة الـ lecture)</h4>
+      <details class="rv"><summary>في مثال A و B، كام <span class="m">v(A)</span> لو <span class="m">γ = 0</span>؟</summary><div class="ans">
+        <p>γ = 0 يعني الـ agent مش شايف غير الـ reward الجاي. <span class="mono">v(A) = 0.5 × 0 + 0.5 × 2 = <b>1</b></span>.</p></div></details>
+      <details class="rv"><summary>ليه continuing task غالباً محتاج <span class="m">γ &lt; 1</span> و episodic ممكن <span class="m">γ = 1</span>؟</summary><div class="ans">
+        <p>الـ episodic بتخلص، فالمجموع محدود. الـ continuing مش بتخلص، فمع γ = 1 المجموع ممكن يبقى infinite ومنقدرش نقارن. γ &lt; 1 بيخلّي المجموع محدود (أقل من <span class="m">R<sub>max</sub>/(1−γ)</span>).</p></div></details>
+      <details class="rv"><summary>اديني مثال observation مش Markov، وإزاي تصلّحه؟</summary><div class="ans">
+        <p>frame واحدة من لعبة فيها كورة بتتحرك: مش بتقول اتجاه الحركة. الحل: تحط آخر كام frame في الـ state (DQN بيحط 4).</p></div></details>
+      <details class="rv"><summary>ليه <span class="m">q<sub>*</sub></span> أنفع من <span class="m">v<sub>*</sub></span> لما منعرفش الـ dynamics؟</summary><div class="ans">
+        <p>بـ <span class="m">v<sub>*</sub></span> عشان تختار action لازم تحسب <span class="m">Σ p [r + γ v(s′)]</span>، يعني محتاج <span class="m">p</span>. بـ <span class="m">q<sub>*</sub></span> بتاخد <span class="m">argmax</span> على الـ actions مباشرة.</p></div></details>
+    </section>
+
+    <div class="endbar"><span class="small">الجاي في Lecture 4: ندي الـ Bellman equation شغل حقيقي. <b>Dynamic Programming</b>: policy evaluation, improvement, iteration.</span><div class="row"><button class="btn ghost donebtn" data-ch="l3">✓ خلصت الـ chapter ده</button><a class="btn ghost" href="#l2" style="text-decoration:none">→ Lecture 2</a></div></div>
+  </div>
+</article>
+
+</div>
+
+<div class="player" id="player" dir="rtl" hidden>
+  <div class="pl-in">
+    <div class="pl-top">
+      <div class="pl-cap"><span class="pl-where" id="plWhere"></span><span id="plCap"></span></div>
+      <div class="pl-ctl">
+        <button id="plPrev" aria-label="الجملة اللي فاتت" title="الجملة اللي فاتت"><svg viewBox="0 0 24 24"><path d="M13 6l6 6-6 6M6 6l6 6-6 6"/></svg></button>
+        <button id="plPlay" class="main" aria-label="تشغيل / إيقاف مؤقت" title="تشغيل / إيقاف مؤقت"></button>
+        <button id="plNext" aria-label="الجملة الجاية" title="الجملة الجاية"><svg viewBox="0 0 24 24"><path d="M11 6l-6 6 6 6M18 6l-6 6 6 6"/></svg></button>
+        <select id="plRate" aria-label="السرعة"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select>
+        <button id="plStop" aria-label="اقفل" title="اقفل"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </div>
+    <div class="pl-bar" dir="ltr"><span id="plT">0:00</span><input type="range" id="plSeek" min="0" max="1000" value="0" aria-label="مكان التشغيل"><span id="plD">0:00</span></div>
+  </div>
+</div>
+<audio id="aud" preload="none"></audio>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- chapter map ---------- */
+const CH=[
+ {id:"l1",k:"L1",t:"Why RL",q:"إمتى أصلاً أستخدم RL؟",c:["loop","reward = spec"],open:true},
+ {id:"l2",k:"L2",t:"RL Basics",q:"إزاي أوصف المشكلة بالأرقام؟",c:["S","A","R","G","γ","Markov"],open:true},
+ {id:"l3",k:"L3",t:"MDP",q:"كل state تسوى قد إيه؟",c:["π","v","q","Bellman"],open:true},
+ {id:"l4",k:"L4",t:"Dynamic Programming",q:"لو عارف الـ model، أطلّع أحسن policy إزاي؟",c:["evaluation","improvement","policy iteration"]},
+ {id:"l5",k:"L5",t:"Value Iteration + MC",q:"ولو مش عارف الـ model؟ اتعلم من episodes",c:["value iteration","GPI","MC prediction"]},
+ {id:"l6",k:"L6",t:"MC Control",q:"أتعلم الـ policy نفسها من التجربة",c:["q","ε-greedy","exploring starts"]},
+ {id:"big",k:"★",t:"The Big Picture",q:"كل حاجة مع بعض قبل الامتحان",c:[]}
+];
+let done=store.get("rl-story-done",{});
+function renderMap(cur){
+  $("#map").innerHTML=CH.map(c=>{
+    const cls=["ch",c.open?"open":"lock",c.id===cur?"cur":"",done[c.id]?"done":""].join(" ");
+    const st=c.open?(done[c.id]?"✓ خلصت":(c.id===cur?"مفتوح":"")):"قريب";
+    return `<${c.open?"a href=\"#"+c.id+"\"":"div"} class="${cls}" style="text-decoration:none;color:inherit">
+      <span class="st">${st}</span><span class="k">${c.k}</span><b>${c.t}</b><span class="q">${c.q}</span>
+      ${c.c.length?`<span class="chips">${c.c.map(x=>`<span>${x}</span>`).join("")}</span>`:""}</${c.open?"a":"div"}>`}).join("");
+  isolate($("#map"));
+}
+
+/* ---------- RTL: isolate Latin runs so sentences read right-to-left ---------- */
+function isolate(root){
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){
+    const p=n.parentElement; if(!p||p.closest(".m,.mb,.mono,svg,script,style,bdi,[dir=ltr],.tg,.pad,.trj,.seq,.tally,.hist,.gtab,.mat,.pg,.rg,.hist2,.chips2"))return NodeFilter.FILTER_REJECT;
+    return /[A-Za-z0-9γεπ]/.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  const re=/[−+]?[A-Za-z0-9γεπ★][A-Za-z0-9γεπ★_\-+'’.\/×=()^,:!%]*(?:[  ]+[−+]?[A-Za-z0-9γεπ(★][A-Za-z0-9γεπ★_\-+'’.\/×=()^,:!%]*)*/g;
+  for(const n of nodes){
+    const s=n.nodeValue; let last=0,m,frag=null; re.lastIndex=0;
+    while((m=re.exec(s))){
+      let t=m[0]; while(/[.,:;'’=(\-!]$/.test(t))t=t.slice(0,-1);
+      if((t.match(/\)/g)||[]).length>(t.match(/\(/g)||[]).length&&t.endsWith(")"))t=t.slice(0,-1);
+      if(!t)continue;
+      frag=frag||document.createDocumentFragment();
+      frag.append(s.slice(last,m.index)); const b=document.createElement("bdi"); b.textContent=t; frag.append(b); last=m.index+t.length; re.lastIndex=last;
+    }
+    if(frag){frag.append(s.slice(last));n.replaceWith(frag)}
+  }
+}
+
+/* ---------- routing ---------- */
+function show(id,scroll){
+  if(!["l1","l2","l3"].includes(id))id="l1";
+  $$(".chapter").forEach(a=>a.hidden=a.id!=="ch-"+id);
+  renderMap(id); store.set("rl-story-last",id);
+  const art=$("#ch-"+id), toc=art.querySelector(".toc");
+  if(!toc.dataset.built){
+    toc.innerHTML=`<span class="tt">المشاهد</span>`+$$(".scene",art).map(s=>`<a href="#" data-go="${s.id}">${s.querySelector(".n").textContent} · ${s.dataset.t}</a>`).join("");
+    toc.dataset.built=1; isolate(toc);
+  }
+  if(scroll)window.scrollTo({top:$("#map").offsetTop-8,behavior:"smooth"});
+  spy();
+}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-go]");if(a){e.preventDefault();document.getElementById(a.dataset.go).scrollIntoView({behavior:"smooth",block:"start"})}});
+window.addEventListener("hashchange",()=>show(location.hash.slice(1),true));
+function spy(){
+  const art=$$(".chapter").find(a=>!a.hidden); if(!art)return;
+  let cur=null; for(const s of $$(".scene",art)){if(s.getBoundingClientRect().top<window.innerHeight*.35)cur=s.id}
+  $$(".toc a",art).forEach(a=>a.classList.toggle("on",a.dataset.go===cur));
+}
+window.addEventListener("scroll",spy,{passive:true});
+$$(".donebtn").forEach(b=>{
+  const sync=()=>{b.classList.toggle("done",!!done[b.dataset.ch]);b.textContent=done[b.dataset.ch]?"✓ خلصته":"✓ خلصت الـ chapter ده"};
+  sync(); b.addEventListener("click",()=>{done[b.dataset.ch]=!done[b.dataset.ch];store.set("rl-story-done",done);sync();renderMap(b.dataset.ch)});
+});
+
+/* ---------- L1: loop animation ---------- */
+const LOOP=[{s:"(2,1)",a:"Right",r:"−5",s2:"(2,2)"},{s:"(2,2)",a:"Up",r:"0",s2:"(1,2)"},{s:"(1,2)",a:"Right",r:"0",s2:"(1,3)"},{s:"(1,3)",a:"Right",r:"0",s2:"(1,4)"},{s:"(1,4)",a:"Down",r:"+10",s2:"(2,4) ★"}];
+const sub=n=>String(n).replace(/\d/g,d=>"₀₁₂₃₄₅₆₇₈₉"[d]);
+let lt=0,lp=0,anim=null;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function moveDot(path,done){
+  const p=document.getElementById(path),L=p.getTotalLength(),dot=$("#lDot");dot.setAttribute("opacity","1");
+  if(anim)cancelAnimationFrame(anim);
+  if(reduce){const q=p.getPointAtLength(L);dot.setAttribute("cx",q.x);dot.setAttribute("cy",q.y);done&&done();return}
+  const t0=performance.now();
+  const f=now=>{const k=Math.min(1,(now-t0)/750),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,q=p.getPointAtLength(L*e);dot.setAttribute("cx",q.x);dot.setAttribute("cy",q.y);if(k<1)anim=requestAnimationFrame(f);else done&&done()};
+  anim=requestAnimationFrame(f);
+}
+function loopRender(){
+  const x=LOOP[lt], T=sub(lt), T1=sub(lt+1);
+  $("#lAgS").textContent=`S${T} = ${x.s}`;
+  $("#lA").textContent=lp>=1?`A${T} = ${x.a}`:`action A${T}`;
+  $("#lR").textContent=lp>=2?`R${T1} = ${x.r} ,  S${T1} = ${x.s2}`:`reward R${T1} + state S${T1}`;
+  $("#lAg").setAttribute("stroke",lp===0?"var(--s)":"var(--ink)");
+  $("#lEn").setAttribute("stroke",lp===1?"var(--a)":"var(--ink)");
+  const msg=[
+    `<b>t = ${lt}</b> · الـ agent شايف الـ state: <span class="m cS">S<sub>${lt}</sub> = ${x.s}</span>، يعني هو فين في الـ grid.`,
+    `بيختار action: <span class="m cA">A<sub>${lt}</sub> = ${x.a}</span>، وبيبعته للـ environment.`,
+    `الـ environment بيرد بحاجتين مع بعض: <span class="m cR">R<sub>${lt+1}</sub> = ${x.r}</span> و<span class="m cS">S<sub>${lt+1}</sub> = ${x.s2}</span>. وبعدين الـ loop بيبدأ من الأول.`
+  ][lp];
+  $("#lStep").innerHTML=msg+(lt===LOOP.length-1&&lp===2?`<br><b class="cR">وصل للكنز. الـ episode خلصت.</b>`:"");
+  isolate($("#lStep"));
+  $("#lNext").disabled=lt===LOOP.length-1&&lp===2;
+}
+$("#lNext").addEventListener("click",()=>{
+  if(lp===2){lt++;lp=0;$("#lDot").setAttribute("opacity","0");loopRender();return}
+  lp++; loopRender(); moveDot(lp===1?"pTop":"pBot");
+});
+$("#lReset").addEventListener("click",()=>{lt=0;lp=0;$("#lDot").setAttribute("opacity","0");loopRender()});
+loopRender();
+
+/* ---------- L1: RL or not quiz ---------- */
+const OPTS=["RL","Supervised","Bandit","مش RL دلوقتي"];
+const Q1=[
+ ["تصنّف صور X-ray لو فيها pneumonia، وعندك labels من radiologist.","Supervised","عندك الإجابة الصح لكل input. ده supervised، أرخص وأسهل."],
+ ["تختار أنهي إعلان يظهر لكل زائر. الزائر الجاي مالوش علاقة باللي قبله.","Bandit","القرار مش بيغيّر اللي جاي، والـ feedback (click) فوري. ده contextual bandit."],
+ ["تتحكم في إشارات المرور طول اليوم. كل قرار بيأثر على الزحمة بعده، وعندك simulator.","RL","decisions متكررة، بتأثر على المستقبل، والـ reward بيتقاس (وقت الانتظار)، وفيه simulator."],
+ ["robot جراحي يتعلم بالتجربة على مرضى حقيقيين، ومفيش simulator ولا data قديمة.","مش RL دلوقتي","الغلط خطر، ومفيش مكان آمن يغلط فيه. ابني simulator أو اجمع logged data الأول."],
+ ["تلعب chess وتعرف بس في الآخر إنك كسبت أو خسرت.","RL","reward متأخر، والـ moves بتأثر على بعض، وتقدر تلعب ملايين games مع نفسك."],
+ ["\"خلّي الموظفين مبسوطين\"، ومحدش عارف يقيس ده برقم.","مش RL دلوقتي","مفيش reward تثق فيه. المشكلة لسه مش جاهزة لـ RL."]
+];
+const ans1={};
+function renderQ1(){
+  $("#quiz1").innerHTML=Q1.map((q,i)=>`<div class="qi"><p>${q[0]}</p><div class="opts">${OPTS.map(o=>{
+    let c="";if(ans1[i]!=null){if(o===q[1])c="ok";else if(o===ans1[i])c="bad"}
+    return `<button data-q="${i}" data-o="${o}" class="${c}">${o}</button>`}).join("")}</div>${ans1[i]!=null?`<p class="fb">${ans1[i]===q[1]?"<b class='cR'>صح.</b> ":"<b class='cN'>لأ، هي "+q[1]+".</b> "}${q[2]}</p>`:""}</div>`).join("");
+  const n=Object.keys(ans1).length,ok=Object.entries(ans1).filter(([i,o])=>Q1[i][1]===o).length;
+  $("#quiz1s").textContent=n?`${ok} من ${n} صح`:"";
+  isolate($("#quiz1"));
+}
+$("#quiz1").addEventListener("click",e=>{const b=e.target.closest("button[data-q]");if(!b)return;ans1[b.dataset.q]=b.dataset.o;renderQ1()});
+renderQ1();
+
+/* ---------- L1: applications ---------- */
+const APPS=[["Article recommendation","أنهي article الزائر ده يشوفها","click"],["Chip floorplanning","الـ block الجاي يتحط فين على الـ die","wires قصيرة و congestion قليل"],["Sepsis treatment","جرعات الـ fluid والـ vasopressor","المريض يعيش"],["AlphaGo","الـ stone الجاية فين","تكسب الماتش"],["TD-Gammon","الـ move الجاية في الطاولة","تكسب الماتش"],["Elevator dispatch","أنهي أسانسير يرد على أنهي call","وقت انتظار قليل"],["Atari from pixels","زرار الـ joystick","الـ game score"],["Stratospheric balloons","تطلع ولا تنزل لـ wind تانية","تفضل قريبة من الـ station بتاعتها"],["Molecule design","الـ fragment الجاي في الـ molecule","الـ activity المتوقعة"],["Tokamak control","الـ voltages على الـ control coils","تثبيت شكل الـ plasma"],["LM alignment","الـ token الجاي في الرد","أنهي رد الإنسان فضّله"]];
+$("#apps").innerHTML=APPS.map(a=>`<div class="card"><h4 dir="ltr" style="text-align:right">${a[0]}</h4><p><b class="cA">action:</b> ${a[1]}</p><p><b class="cR">reward:</b> ${a[2]}</p></div>`).join("");
+
+/* ---------- L2: treasure game ---------- */
+const SECRET={"1,1":-5,"2,2":-5,"1,3":10};
+const DIRS={Up:[-1,0],Down:[1,0],Left:[0,-1],Right:[0,1]};
+let G;
+function gNew(){G={r:1,c:0,moves:5,tot:0,seen:new Set(["1,0"]),log:[],over:false,reveal:false};gRender()}
+const lab=(r,c)=>`(${r+1},${c+1})`;
+function gMove(d){
+  if(G.over)return; const [dr,dc]=DIRS[d], from=lab(G.r,G.c);
+  let nr=G.r+dr,nc=G.c+dc,rew=0,wall=false;
+  if(nr<0||nr>2||nc<0||nc>3){nr=G.r;nc=G.c;wall=true}
+  else{G.r=nr;G.c=nc;G.seen.add(nr+","+nc);rew=SECRET[nr+","+nc]||0}
+  G.moves--;G.tot+=rew;
+  G.log.push({s:from,a:d,r:rew,s2:lab(nr,nc),wall});
+  if(rew===10){G.over=true;G.end="gold"}else if(G.moves===0){G.over=true;G.end="out"}
+  gRender();
+}
+function trjHTML(log){
+  if(!log.length)return `<span class="cS">S₀ <span class="v">(2,1)</span></span><span class="ar">… اتحرك عشان الـ trajectory يتكتب</span>`;
+  let h=`<span class="cS">S₀ <span class="v">${log[0].s}</span></span>`;
+  log.forEach((x,i)=>{h+=`<span class="ar">→</span><span class="cA">A${sub(i)} <span class="v">${x.a}</span></span><span class="ar">→</span><span class="${x.r<0?"cN":"cR"}">R${sub(i+1)} <span class="v">${x.r>0?"+":""}${x.r}${x.wall?" wall":""}</span></span><span class="cS">S${sub(i+1)} <span class="v">${x.s2}</span></span>`});
+  return h;
+}
+function gRender(){
+  let h=`<span></span>`+[1,2,3,4].map(c=>`<span class="lb">Col ${c}</span>`).join("");
+  for(let r=0;r<3;r++){h+=`<span class="lb">R${r+1}</span>`;for(let c=0;c<4;c++){
+    const k=r+","+c, v=SECRET[k]||0, vis=G.seen.has(k)||G.reveal, here=G.r===r&&G.c===c;
+    let cls="cell"; if(vis)cls+=v<0?" trap":v>0?" gold":" seen"; if(here)cls+=" here"; if(r===1&&c===0)cls+=" start";
+    h+=`<div class="${cls}">${vis?(v<0?"−5":v>0?"★":"·"):""}</div>`}}
+  $("#tg").innerHTML=h;
+  $("#gMoves").textContent=G.moves; $("#gTot").textContent=(G.tot>0?"+":"")+G.tot;
+  $$("#pad button").forEach(b=>b.disabled=G.over);
+  const t=trjHTML(G.log); $("#gTrj").innerHTML=t;
+  $("#gTrj2").innerHTML=G.log.length?t:trjHTML(LOOP.map(x=>({s:x.s,a:x.a,r:+x.r.replace("−","-"),s2:x.s2.replace(" ★","")})))+`<span class="ar">(مثال، لسه ملعبتش)</span>`;
+  const m=G.over?(G.end==="gold"?`وصلت للكنز في ${G.log.length} moves. المجموع <b>${G.tot}</b>. الرقم ده هو الـ <b>Return</b>.`:`الـ moves خلصت. المجموع <b>${G.tot}</b>.`):(G.log.length&&G.log.at(-1).r<0?"فخ. −5":G.log.length&&G.log.at(-1).wall?"خبطت في الحيطة. الـ move ضاعت.":"");
+  $("#gMsg").innerHTML=m; isolate($("#gMsg"));
+}
+$("#pad").addEventListener("click",e=>{const b=e.target.closest("button[data-d]");if(b)gMove(b.dataset.d)});
+$("#tg").addEventListener("keydown",e=>{const k={ArrowUp:"Up",ArrowDown:"Down",ArrowLeft:"Left",ArrowRight:"Right"}[e.key];if(k){e.preventDefault();gMove(k)}});
+$("#gReset").addEventListener("click",gNew);
+$("#gReveal").addEventListener("click",()=>{G.reveal=!G.reveal;gRender()});
+gNew();
+
+/* ---------- L2: gamma lab ---------- */
+const fmt=(x,d=2)=>(Math.abs(x)<1e-9?0:x).toFixed(d).replace("-","−");
+function gammaRender(){
+  const g=+$("#gam").value; $("#gamO").textContent=g.toFixed(2);
+  // weights chart
+  const W=520,H=150,pad=28,bw=(W-pad*2)/10; let s=`<line x1="${pad}" y1="${H-26}" x2="${W-pad}" y2="${H-26}" class="axis" stroke-width="1"/>`;
+  for(let k=0;k<10;k++){const w=Math.pow(g,k),h=w*(H-50),x=pad+k*bw+6;
+    s+=`<rect x="${x}" y="${H-26-h}" width="${bw-12}" height="${Math.max(h,0)}" rx="4" fill="var(--g)" opacity="${.35+.65*w}"/>`;
+    s+=`<text x="${x+(bw-12)/2}" y="${H-10}" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--muted)">γ${"⁰¹²³⁴⁵⁶⁷⁸⁹"[k]}</text>`;
+    s+=`<text x="${x+(bw-12)/2}" y="${H-30-h}" text-anchor="middle" font-family="var(--f-mono)" font-size="10.5" fill="var(--ink)">${w.toFixed(2)}</text>`}
+  $("#wchart").innerHTML=s;
+  $("#wcap").innerHTML=`الـ reward رقم 10 بيتضرب في <span class="mono">${Math.pow(g,9).toFixed(3)}</span>. ${g<.5?"بسرعة جداً الأوزان بتبقى صفر: agent قصير النظر.":g>.95?"الأوزان كلها تقريباً 1: agent بعيد النظر.":"كل ما تبعد، الـ reward بيسوى أقل."}`;
+  // paths table
+  const P={Risky:[-5,0,10],Safe:[0,0,0,0,10]}; let t=`<tr><th></th>${[0,1,2,3,4].map(k=>`<th>k=${k}</th>`).join("")}<th>G₀</th></tr>`; const G0={};
+  for(const [n,rs] of Object.entries(P)){let sum=0;t+=`<tr><th>${n}</th>`;for(let k=0;k<5;k++){if(k<rs.length){const v=rs[k]*Math.pow(g,k);sum+=v;t+=`<td><span style="color:var(--muted)">${rs[k]}×${fmt(Math.pow(g,k))}</span><br>${fmt(v)}</td>`}else t+=`<td></td>`}G0[n]=sum;t+=`<td class="sum">${fmt(sum)}</td></tr>`}
+  $("#gtab").innerHTML=t;
+  $("#gpaths").innerHTML=`الـ Safe أحسن بفرق <b class="mono">${fmt(G0.Safe-G0.Risky)}</b>. جرّب أي γ، عمره ما هيتقلب (أقل فرق 2.5).`;
+  // +10 vs +12
+  const a=10,b=12*Math.pow(g,9),mx=12;
+  $("#vsbars").innerHTML=`<div class="barrow"><span>+10 بعد 1 move</span><span class="track"><span class="fill" style="display:block;width:${a/mx*100}%;background:var(--r)"></span></span><span class="val ${a>=b?"winner":""}">${fmt(a)}</span></div>
+  <div class="barrow"><span>+12 بعد 10 moves</span><span class="track"><span class="fill" style="display:block;width:${b/mx*100}%;background:var(--g)"></span></span><span class="val ${b>a?"winner":""}">${fmt(b)}</span></div>`;
+  $("#vscap").innerHTML=b>a?`بـ γ = ${g.toFixed(2)} الـ +12 البعيدة كسبت. الترتيب بيتقلب لما γ تعدّي ≈ 0.98.`:`بـ γ = ${g.toFixed(2)} الـ +10 القريبة كسبت (12 × γ⁹ = ${fmt(b)}). علّي γ لحد ≈ 0.98 وشوف الترتيب بيتقلب.`;
+  isolate($("#vsbars"));isolate($("#vscap"));isolate($("#wcap"));isolate($("#gpaths"));
+}
+$("#gam").addEventListener("input",gammaRender); gammaRender();
+
+/* ---------- L2: markov property toggle ---------- */
+$("#histBtn").addEventListener("click",()=>{const h=$("#hist");h.classList.toggle("dim");$("#histBtn").textContent=h.classList.contains("dim")?"رجّع الـ history":"اشطب الـ history"});
+
+/* ---------- L2: weather chain ---------- */
+const SEQ="SSRSSSRRSR".split("");
+let si=0,T={SS:0,SR:0,RS:0,RR:0};
+function seqRender(hl){
+  $("#seq").innerHTML=SEQ.map((x,i)=>`<span class="${x} ${hl!=null&&(i===hl||i===hl+1)?"on":""}">${x}</span>`).join("");
+  $$("#tally div").forEach(d=>{d.querySelector("b").textContent=T[d.dataset.k];d.classList.remove("flash")});
+  $("#seqMsg").textContent=si>=SEQ.length-1?"خلصنا: 9 pairs":`pair ${si} من 9`;
+  $("#mcOut").hidden=si<SEQ.length-1; $("#seqNext").disabled=si>=SEQ.length-1;
+}
+function seqStep(){if(si>=SEQ.length-1)return;const k=SEQ[si]+SEQ[si+1];T[k]++;const i=si;si++;seqRender(i);const d=$(`#tally div[data-k="${k}"]`);d&&d.classList.add("flash")}
+$("#seqNext").addEventListener("click",seqStep);
+$("#seqAll").addEventListener("click",()=>{while(si<SEQ.length-1){const k=SEQ[si]+SEQ[si+1];T[k]++;si++}seqRender()});
+$("#seqReset").addEventListener("click",()=>{si=0;T={SS:0,SR:0,RS:0,RR:0};seqRender()});
+seqRender();
+$("#simBtn").addEventListener("click",()=>{let x="S",o=[x];for(let i=1;i<14;i++){x=x==="S"?(Math.random()<.5?"S":"R"):(Math.random()<2/3?"S":"R");o.push(x)}$("#simOut").innerHTML=o.map(v=>`<span class="${v}">${v}</span>`).join("")});
+
+/* ---------- L3: slippery robot, values, dynamics ---------- */
+const GD={U:[-1,0],D:[1,0],L:[0,-1],R:[0,1]}, GLT={U:"L",L:"D",D:"R",R:"U"}, GRT={U:"R",R:"D",D:"L",L:"U"}, ARR={U:"↑",D:"↓",L:"←",R:"→"};
+const BOMBS=new Set(["2,2","3,3"]), STARK="2,4", GKEYS=[1,2,3].flatMap(r=>[1,2,3,4].map(c=>r+","+c));
+const BEST={"1,1":"R","1,2":"R","1,3":"R","1,4":"D","2,1":"U","2,2":"R","2,3":"R","3,1":"U","3,2":"R","3,3":"R","3,4":"U"};
+const NAIVE={"1,1":"D","1,2":"D","1,3":"D","1,4":"D","2,1":"R","2,2":"R","2,3":"R","3,1":"U","3,2":"U","3,3":"U","3,4":"U"};
+const POLS={best:BEST,naive:NAIVE};
+function gstep(s,a,roll){
+  const d=roll<=4?a:roll===5?GLT[a]:GRT[a], [r,c]=s.split(",").map(Number);
+  let nr=r+GD[d][0], nc=c+GD[d][1]; if(nr<1||nr>3||nc<1||nc>4){nr=r;nc=c}
+  const t=nr+","+nc; let rew=-1; if(BOMBS.has(t))rew-=5; if(t===STARK)rew+=10; return [t,rew,d];
+}
+function gouts(s,a){
+  const m=new Map();
+  for(let k=1;k<=6;k++){const [t,r,d]=gstep(s,a,k),key=t+"|"+r;const o=m.get(key)||{t,r,n:0,rolls:[],d};o.n++;o.rolls.push(k);m.set(key,o)}
+  return [...m.values()];
+}
+const VB=(()=>{const v={};GKEYS.forEach(k=>v[k]=0);
+  for(let i=0;i<3000;i++)for(const s of GKEYS){if(s===STARK)continue;let x=0;for(const o of gouts(s,BEST[s]))x+=o.n/6*(o.r+v[o.t]);v[s]=x}
+  return v})();
+const qOf=(s,a)=>gouts(s,a).reduce((x,o)=>x+o.n/6*(o.r+VB[o.t]),0);
+function gridHTML(o){
+  let h='<div class="rg">';
+  for(const k of GKEYS){
+    const bomb=BOMBS.has(k), star=k===STARK;
+    const cls="rc"+(bomb?" bomb":"")+(star?" star":"")+(k==="2,1"?" start":"")+(o.here===k?" here":"")+(o.sel===k?" sel":"");
+    let st=""; if(o.values&&!star){const v=VB[k],t=Math.min(1,Math.abs(v)/8)*48;st=` style="background:color-mix(in srgb,var(${v>=0?"--r":"--neg"}) ${t.toFixed(0)}%,var(--surface))"`}
+    const inner=(bomb?'<i class="bm">✸</i>':"")+(star?'<span class="ar">★</span>':(o.pol?`<span class="ar">${ARR[o.pol[k]]}</span>`:""))+(o.values?`<span class="vv">${star?"0":fmt(VB[k],1)}</span>`:"");
+    h+=(o.pick&&!star)?`<button type="button" class="${cls}" data-sq="${k}"${st} aria-label="مربع ${k}">${inner}</button>`:`<div class="${cls}"${st}>${inner}</div>`;
+  }
+  return h+"</div>";
+}
+const pickGrid=(sel,fn)=>$(sel).addEventListener("click",e=>{const b=e.target.closest("[data-sq]");if(b)fn(b.dataset.sq)});
+const segSet=(root,attr,val)=>$$("button",$(root)).forEach(b=>b.setAttribute("aria-pressed",String(b.dataset[attr]===String(val))));
+
+/* scene 1: the simulator */
+const R1={pol:"best",s:"2,1",tot:0,moves:0,log:[],done:false,n:0,sum:0,last:[],bins:[0,0,0,0,0,0,0],die:null,msg:""};
+const BINL=["≤−17","−16…−13","−12…−9","−8…−5","−4…−1","0…3","4…7"];
+const binOf=t=>t<=-17?0:t<=-13?1:t<=-9?2:t<=-5?3:t<=-1?4:t<=3?5:6;
+function r1new(){R1.s="2,1";R1.tot=0;R1.moves=0;R1.log=[];R1.done=false;R1.die=null}
+function r1rec(t){R1.n++;R1.sum+=t;R1.last.unshift(t);if(R1.last.length>14)R1.last.pop();R1.bins[binOf(t)]++}
+function r1step(){
+  if(R1.done)r1new();
+  const a=POLS[R1.pol][R1.s], roll=1+Math.floor(Math.random()*6), [t,r,d]=gstep(R1.s,a,roll);
+  R1.moves++;R1.tot+=r;R1.die=roll;
+  R1.log.push({m:R1.moves,s:R1.s,a,roll,d,r,tot:R1.tot});R1.s=t;
+  if(t===STARK){R1.done=true;r1rec(R1.tot)}
+  if(R1.moves>400&&!R1.done){R1.done=true;r1rec(R1.tot)}
+}
+function r1bulk(k){
+  const pol=POLS[R1.pol];
+  for(let i=0;i<k;i++){let s="2,1",tot=0,n=0;while(s!==STARK&&n<400){const [t,r]=gstep(s,pol[s],1+Math.floor(Math.random()*6));tot+=r;s=t;n++}r1rec(tot)}
+  r1new();
+}
+function r1render(){
+  $("#r1grid").innerHTML=gridHTML({pol:POLS[R1.pol],here:R1.done?null:R1.s});
+  $("#r1die").textContent=R1.die??"–";$("#r1tot").textContent=fmt(R1.tot,0);$("#r1n").textContent=R1.n.toLocaleString("en");
+  $("#r1avg").textContent=R1.n?fmt(R1.sum/R1.n,2):"–";
+  let t=`<tr><th>#</th><th>مربع</th><th>سهم</th><th>نرد</th><th>راح</th><th>نقط</th><th>مجموع</th></tr>`;
+  for(const x of R1.log)t+=`<tr><td>${x.m}</td><td>(${x.s})</td><td>${ARR[x.a]}</td><td>${x.roll}</td><td>${ARR[x.d]}</td><td>${fmt(x.r,0)}</td><td>${fmt(x.tot,0)}</td></tr>`;
+  $("#r1log").innerHTML=R1.log.length?t:"";
+  const mx=Math.max(1,...R1.bins);
+  $("#r1hist").innerHTML=R1.bins.map((c,i)=>`<div><i style="height:${(c/mx*78).toFixed(0)}%"></i><span>${BINL[i]}</span></div>`).join("");
+  $("#r1last").innerHTML=R1.last.length?"<span style=\"background:none;padding:0\">آخر rounds:</span>"+R1.last.map(x=>`<span class="${x<0?"cN":"cR"}">${fmt(x,0)}</span>`).join(""):"";
+  $("#r1msg").innerHTML=R1.done?`<b>خلص الـ round: المجموع ${fmt(R1.tot,0)}.</b> ده الـ return بتاع الـ round ده بس.`:(R1.n>=100?`بعد ${R1.n.toLocaleString("en")} round المتوسط ${fmt(R1.sum/R1.n,2)}. ${R1.pol==="best"?"المفروض يقرّب من 0.1 وهي قيمة start.":"مقارنة بالأسهم الأحسن (0.1)، الأسهم الساذجة بتخسر."}`:"");
+  isolate($("#r1msg"));
+}
+$("#r1roll").addEventListener("click",()=>{r1step();r1render()});
+$("#r1fin").addEventListener("click",()=>{if(R1.done)r1new();let g=0;while(!R1.done&&g++<500)r1step();r1render()});
+$("#r1x100").addEventListener("click",()=>{r1bulk(100);r1render()});
+$("#r1x10k").addEventListener("click",()=>{r1bulk(10000);r1render()});
+$("#r1pol").addEventListener("click",e=>{const b=e.target.closest("button[data-p]");if(!b)return;R1.pol=b.dataset.p;Object.assign(R1,{n:0,sum:0,last:[],bins:[0,0,0,0,0,0,0]});r1new();segSet("#r1pol","p",R1.pol);r1render()});
+r1render();
+
+/* scene 3: heatmap */
+let sq3="2,1";
+function r3(){
+  $("#g3").innerHTML=gridHTML({pol:BEST,values:true,pick:true,sel:sq3});
+  $("#g3msg").innerHTML=`المربع <b class="mono">(${sq3})</b>: لو بدأت منه ومشيت بالأسهم، المتوسط <b class="mono">${fmt(VB[sq3],1)}</b>.`;
+  isolate($("#g3msg"));
+}
+pickGrid("#g3",k=>{sq3=k;r3()});r3();
+
+/* scene 4: value from neighbors */
+let sq4="1,4";
+function r4(){
+  $("#g4").innerHTML=gridHTML({pol:BEST,values:true,pick:true,sel:sq4});
+  const s=sq4,a=BEST[s],os=gouts(s,a);
+  let rows="",pself=0,rest=0,rSelf=0;
+  for(const o of os){
+    const p=o.n/6,self=o.t===s;
+    rows+=`<tr><td>${o.rolls.join(",")}</td><td>${o.n}/6</td><td>${ARR[o.d]} (${o.t})${self?" نفسه":""}</td><td>${fmt(o.r,0)}</td><td>${self?"v":fmt(VB[o.t],1)}</td><td>${self?`${o.n}/6 (${fmt(o.r,0)} + v)`:fmt(p*(o.r+VB[o.t]),2)}</td></tr>`;
+    if(self){pself+=p;rSelf+=p*o.r}else rest+=p*(o.r+VB[o.t]);
+  }
+  const rhs=rest+rSelf, v=rhs/(1-pself);
+  $("#c4").innerHTML=`<p>المربع <b class="mono">(${s})</b> والسهم <b class="cA">${ARR[a]}</b>:</p>
+  <div class="tblwrap"><table class="gtab"><tr><th>نرد</th><th>احتمال</th><th>بيروح</th><th>نقط</th><th>v(المكان)</th><th>احتمال × (نقط + v)</th></tr>${rows}</table></div>
+  <p class="mono" style="font-size:.9rem">${pself>0?`v × (1 − ${fmt(pself,3)}) = ${fmt(rhs,3)} ⇒ v ≈ ${fmt(v,2)}`:`v = ${fmt(rest,3)} ≈ ${fmt(v,2)}`}</p>
+  <p class="small">الجدول اللي فوق بيقول <b class="mono">${fmt(VB[s],1)}</b>. نفس الرقم.</p>`;
+  isolate($("#c4"));
+}
+pickGrid("#g4",k=>{sq4=k;r4()});r4();
+
+/* scene 5: frames toggle */
+function frRender(n){
+  $("#fr1").hidden=n!=="1";$("#fr4").hidden=n!=="4";segSet("#frSeg","f",n);
+  $("#frMsg").textContent=n==="1"?"frame واحدة: مش عارف الكورة رايحة يمين ولا شمال. الـ state ناقصة، فمش Markov.":"آخر 4 frames: الاتجاه واضح. الـ state كفاية (ده اللي DQN بيعمله).";
+}
+$("#frSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-f]");if(b)frRender(b.dataset.f)});frRender("1");
+
+/* scene 6: dynamics explorer */
+let sq6="1,4",a6="D";
+function r6(){
+  $("#g6").innerHTML=gridHTML({sel:sq6,pick:true});
+  $("#a6").innerHTML="UDLR".split("").map(a=>`<button type="button" data-a="${a}" aria-pressed="${a===a6}">${ARR[a]}</button>`).join("");
+  const os=gouts(sq6,a6);let t=`<tr><th>s′</th><th>r</th><th>p(s′,r | s,a)</th><th>p × r</th></tr>`,er=0;
+  for(const o of os){er+=o.n/6*o.r;t+=`<tr><td>(${o.t})</td><td>${fmt(o.r,0)}</td><td>${o.n}/6</td><td>${fmt(o.n/6*o.r,2)}</td></tr>`}
+  t+=`<tr><td colspan="2"><b>المجموع</b></td><td><b>${os.reduce((x,o)=>x+o.n,0)}/6 = 1</b></td><td><b>${fmt(er,2)}</b></td></tr>`;
+  $("#t6").innerHTML=t;
+  $("#m6").innerHTML=`من <b class="mono">(${sq6})</b> بالسهم ${ARR[a6]}: <span class="m">r(s,a)</span> = <b class="mono">${fmt(er,2)}</b>. النرد لوحده بيحدد الاحتمالات، فمفيش غير 6 نتايج ممكنة بتتجمّع في ${os.length}.`;
+  isolate($("#m6"));
+}
+pickGrid("#g6",k=>{sq6=k;r6()});
+$("#a6").addEventListener("click",e=>{const b=e.target.closest("button[data-a]");if(b){a6=b.dataset.a;r6()}});r6();
+
+/* scene 7: reward per move */
+let c7=-1;
+function r7(){
+  segSet("#cSel","c",c7);
+  const sh=3*c7+10, lg=9*c7+10, mx=20;
+  $("#cBars").innerHTML=[["قصير (3 moves)",sh,"var(--r)"],["طويل (9 moves)",lg,"var(--g)"]].map(([l,v,c])=>`<div class="barrow"><span>${l}</span><span class="track"><span class="fill" style="display:block;width:${Math.max(0,v)/mx*100}%;background:${c}"></span></span><span class="val">${fmt(v,0)}</span></div>`).join("");
+  $("#cMsg").innerHTML=c7<0?"القصير بيكسب. الـ agent عنده سبب يستعجل.":c7===0?"الاتنين بنفس القيمة. مفيش حاجة تخليه يستعجل.":"الطويل بيكسب! الـ agent بياخد أجر عشان يتمشى.";
+  isolate($("#cMsg"));
+}
+$("#cSel").addEventListener("click",e=>{const b=e.target.closest("button[data-c]");if(b){c7=+b.dataset.c;r7()}});r7();
+
+/* scene 8: backward return */
+const RW=[2,0,-1,5], GAM=.5; let bk=0;
+function r8(){
+  const G=[0,0,0,0,0];for(let t=3;t>=0;t--)G[t]=RW[t]+GAM*G[t+1];
+  let h=`<tr><th>t</th><th>R<sub>t+1</sub></th><th>G<sub>t</sub> = R<sub>t+1</sub> + 0.5 × G<sub>t+1</sub></th></tr>`;
+  for(let t=0;t<4;t++){const k=3-t,show=bk>k;
+    h+=`<tr><td>${t}</td><td>${fmt(RW[t],0)}</td><td>${show?`${fmt(RW[t],0)} + 0.5 × ${fmt(G[t+1],3).replace(/\.?0+$/,"")} = <b>${fmt(G[t],3).replace(/\.?0+$/,"")}</b>`:"؟"}</td></tr>`}
+  $("#bkT").innerHTML=h;
+  $("#bkMsg").textContent=bk===0?"نبدأ من الآخر: بعد آخر reward مفيش حاجة، فـ G₄ = 0.":bk<4?"كل خطوة بتاخد الـ return اللي بعدها وتضربه في γ.":"وصلنا لـ G₀ = 2.375، والمفروض يبقى نفس الرقم اللي طلع في Lecture 2.";
+  $("#bkNext").disabled=bk>=4;
+}
+$("#bkNext").addEventListener("click",()=>{bk++;r8()});$("#bkReset").addEventListener("click",()=>{bk=0;r8()});r8();
+function rgb(){const g=+$("#gb").value;$("#gbO").textContent=g.toFixed(2);$("#gbMsg").innerHTML=`لو R<sub>max</sub> = 1: <span class="mono">G ≤ 1 / (1 − ${g.toFixed(2)}) = ${fmt(1/(1-g),1)}</span>`}
+$("#gb").addEventListener("input",rgb);rgb();
+
+/* scene 9: policies */
+const PDIST={det:[["→",1],["↑",0],["↓",0],["←",0]],sto:[["→",.7],["↑",.1],["↓",.1],["←",.1]],rps:[["Rock",1/3],["Paper",1/3],["Scissors",1/3]]};
+const PMSG={det:"Deterministic: action واحد في الـ state دي. زي سهمك.",sto:"Stochastic: احتمالات. بتخلّي الـ agent يجرّب (exploration).",rps:"في حجر ورقة مقص، لو الـ policy deterministic الخصم هيستغلك، فلازم stochastic."};
+let p9="det";
+function r9(){
+  segSet("#pSel","p",p9);
+  $("#pBars").innerHTML=PDIST[p9].map(([l,p])=>`<div class="barrow"><span class="mono">${l}</span><span class="track"><span class="fill" style="display:block;width:${p*100}%;background:var(--a)"></span></span><span class="val">${p.toFixed(2)}</span></div>`).join("");
+  $("#pMsg").textContent=PMSG[p9];
+}
+$("#pSel").addEventListener("click",e=>{const b=e.target.closest("button[data-p]");if(b){p9=b.dataset.p;r9()}});r9();
+
+/* scene 10: v from q */
+function r10(){
+  const p=+$("#pv").value/100,q1=5,q2=1,v=p*q1+(1-p)*q2;$("#pvO").textContent=p.toFixed(2);
+  $("#pvBars").innerHTML=[["q(s,a₁)",q1,"var(--a)"],["q(s,a₂)",q2,"var(--a)"],["v(s)",v,"var(--s)"]].map(([l,x,c])=>`<div class="barrow"><span class="mono">${l}</span><span class="track"><span class="fill" style="display:block;width:${x/5*100}%;background:${c}"></span></span><span class="val">${fmt(x,2)}</span></div>`).join("");
+  $("#pvMsg").innerHTML=`v = ${p.toFixed(2)} × 5 + ${(1-p).toFixed(2)} × 1 = <b class="mono">${fmt(v,2)}</b>. ${p===1?"بتختار a₁ بس، فـ v = q(s,a₁).":p===0?"بتختار a₂ بس، فـ v = q(s,a₂).":"v بين القيمتين، حسب احتمالات الـ policy."}`;
+  isolate($("#pvMsg"));
+}
+$("#pv").addEventListener("input",r10);r10();
+
+/* scene 12: A and B */
+let abN=0;
+function r12(){
+  const A=+$("#abA").value||0,B=+$("#abB").value||0, rA=.5*(0+.5*A)+.5*(2+.5*B), rB=3+.5*A, dA=A-rA, dB=B-rB;
+  $("#abTab").innerHTML=`<tr><th></th><th>الطرف الشمال</th><th>الطرف اليمين</th><th>الفرق</th></tr>
+  <tr><td>v(A)</td><td>${fmt(A,3)}</td><td>${fmt(rA,3)}</td><td>${fmt(dA,3)}</td></tr>
+  <tr><td>v(B)</td><td>${fmt(B,3)}</td><td>${fmt(rB,3)}</td><td>${fmt(dB,3)}</td></tr>`;
+  const ok=Math.abs(dA)<.005&&Math.abs(dB)<.005;
+  $("#abMsg").innerHTML=ok?"<b class='cR'>الطرفين متساويين في المعادلتين. ده الحل: v(A) = 2.8 و v(B) = 4.4.</b>":`الفرق لسه موجود${abN?` (بعد ${abN} sweep)`:""}. لما يبقى صفر في الاتنين يبقى لقيت الحل.`;
+  isolate($("#abMsg"));
+}
+$("#abA").addEventListener("input",()=>{abN=0;r12()});$("#abB").addEventListener("input",()=>{abN=0;r12()});
+$("#abSweep").addEventListener("click",()=>{const A=+$("#abA").value||0,B=+$("#abB").value||0;$("#abA").value=(.5*(.5*A)+.5*(2+.5*B)).toFixed(3);$("#abB").value=(3+.5*A).toFixed(3);abN++;r12()});
+$("#abZero").addEventListener("click",()=>{$("#abA").value=0;$("#abB").value=0;abN=0;r12()});r12();
+
+/* scene 13: optimal explorer */
+let sq13="2,1";
+function r13(){
+  $("#g13").innerHTML=gridHTML({pol:BEST,values:true,pick:true,sel:sq13});
+  const qs="UDLR".split("").map(a=>[a,qOf(sq13,a)]), best=qs.reduce((x,y)=>y[1]>x[1]?y:x);
+  $("#b13").innerHTML=qs.map(([a,q])=>`<div class="barrow"><span class="mono">q(s, ${ARR[a]})</span><span class="track"><span class="fill" style="display:block;width:${Math.max(2,(q+3)/12*100)}%;background:${a===best[0]?"var(--accent)":"var(--muted)"}"></span></span><span class="val">${fmt(q,2)}</span></div>`).join("");
+  $("#m13").innerHTML=`المربع <b class="mono">(${sq13})</b>: أعلى قيمة <b class="mono">${fmt(best[1],2)}</b> عند ${ARR[best[0]]}، وده السهم اللي في الجدول، وقيمته هي قيمة المربع. يعني <span class="m">v<sub>*</sub>(s) = max<sub>a</sub> q(s,a)</span>.`;
+  isolate($("#m13"));
+}
+pickGrid("#g13",k=>{sq13=k;r13()});r13();
+
+/* scene 15: mistakes quiz */
+function makeQuiz(rootSel,scoreSel,opts,items){
+  const ans={},root=$(rootSel);
+  function draw(){
+    root.innerHTML=items.map((q,i)=>`<div class="qi"><p>${q[0]}</p><div class="opts">${opts.map((o,j)=>{let c="";if(ans[i]!=null){if(j===q[1])c="ok";else if(j===ans[i])c="bad"}return `<button data-q="${i}" data-o="${j}" class="${c}">${o}</button>`}).join("")}</div>${ans[i]!=null?`<p class="fb">${ans[i]===q[1]?"<b class='cR'>صح.</b> ":"<b class='cN'>لأ، هي \""+opts[q[1]]+"\".</b> "}${q[2]}</p>`:""}</div>`).join("");
+    const n=Object.keys(ans).length,ok=Object.entries(ans).filter(([i,j])=>items[i][1]===j).length;
+    $(scoreSel).textContent=n?`${ok} من ${n} صح`:"";isolate(root);
+  }
+  root.addEventListener("click",e=>{const b=e.target.closest("button[data-q]");if(!b)return;ans[b.dataset.q]=+b.dataset.o;draw()});draw();
+}
+makeQuiz("#quiz3","#quiz3s",["state ناقصة","reward على خطوة","reward متأخر خالص","γ = 1 ومالهاش نهاية","action space ضخم","indexing غلط"],[
+ ["الـ state هي frame واحدة من لعبة فيها كورة بتتحرك.",0,"الـ frame لوحدها مش بتقول الاتجاه. حط آخر كام frame في الـ state."],
+ ["في الشطرنج، الـ agent بياخد +1 على كل قطعة بياكلها.",1,"كافئ الفوز نفسه، مش الخطوات. غير كده ممكن يبدّل قطع ويخسر."],
+ ["الـ reward صفر لمدة 500 move، ومبتيجي غير في الآخر خالص.",2,"في الأول مفيش إشارة يتعلم منها. ممكن تدعمه بإشارات وسيطة بحذر."],
+ ["thermostat شغال 24/7 بدون نهاية، و γ = 1 والـ rewards موجبة.",3,"المجموع هيكبر لما لا نهاية. استخدم γ أقل من 1."],
+ ["الـ action هو اختيار layout كامل مرة واحدة من مليارات الاحتمالات.",4,"قسّمها لاختيارات صغيرة، زي حط block واحد في كل خطوة."],
+ ["كاتب إن الـ action في الوقت t بيجيب R(t) في نفس الوقت.",5,"الـ action في t بيجيب R(t+1)، مع S(t+1)."]
+]);
+
+
+/* ---------- narration: pre-recorded audio/<scene>.mp3, captions from CUES ---------- */
+const NARR={
+"l1-1":"أهلاً بيك في أول chapter. خلّينا نبدأ بأربع مواقف. دكتور في الـ ICU لازم يقرر جرعة الـ fluid دلوقتي، بس هيعرف إذا كانت صح بعد أيام. لاعب Go بيحط stone، والنتيجة بتبان بعد مية move. مهندس بيحط block على الـ chip، ومش هيعرف إذا كان مكانه كويس غير لما كل الـ blocks تتحط. و balloon في الـ stratosphere بتطلع أو تنزل، وبتعرف النتيجة بعد ساعات. المشترك بينهم: القرار دلوقتي، والإجابة بعدين. ومحدش يقدر يدّيك label إن القرار ده صح.",
+"l1-2":"طب إيه المشترك بين الأربعة؟ أربع صفات. أولاً، الـ feedback بيقيّمك، مش بيصحّحلك. بتعرف إن المريض عاش، بس مش بتعرف الجرعة الأحسن كانت إيه. تانياً، الـ score بيوصل متأخر. الـ move اللي خسّرتك ممكن تكون من خمسين move فاتوا. تالتاً، اللي بتختاره بيغيّر اللي هتشوفه بعد كده. يعني الـ behavior بتاعك هو اللي بيعمل الـ data. ورابعاً، لازم تجرّب حاجات مش متأكد منها، ودي اسمها exploration. لو المشكلة فيها الأربع صفات دول، يبقى غالباً RL problem.",
+"l1-3":"دلوقتي الصورة اللي الكورس كله مبني عليها: الـ loop. الـ agent بيشوف الـ state، ويختار action، ويبعته للـ environment. الـ environment بيرد بحاجتين مع بعض: reward، وده رقم، و state جديدة. وبعدين نفس الحكاية تاني. دوس على الخطوة الجاية في الرسمة وتابع النقطة. الـ loop نفسه سهل جداً. الصعب إن الـ reward اللي جاي دلوقتي ممكن يكون نتيجة action اتاخد من زمان، فالـ agent لازم يعرف يوزّع الـ credit صح. ودي اسمها credit assignment.",
+"l1-4":"طب RL مختلف عن supervised learning في إيه؟ في supervised بيدّوك input والإجابة الصح، والـ data ثابتة. السؤال هناك: ده إيه؟ والنجاح إنك تطابق الـ label. في RL مفيش labels خالص. إنت بتعمل action، والـ world بترد، والردود دي هي الـ data. السؤال هنا: أعمل إيه دلوقتي؟ والنجاح إنك تجمع reward أكتر على مدار الوقت.",
+"l1-5":"ومهم جداً تعرف إمتى RL يبقى غلط. لو عندك الإجابة الصح لكل input، استخدم supervised. لو القرار مش بيأثر على اللي جاي، يبقى bandit، وده أبسط بكتير. لو الغلط خطر ومفيش simulator، الـ agent مش هيلاقي مكان يتعلم فيه. ولو مش قادر تكتب reward تثق فيه، المشكلة لسه مش جاهزة. جرّب الـ quiz اللي تحت، وشوف كل مشكلة تبقى إيه.",
+"l1-6":"ودي أهم نقطة في الـ lecture. الـ agent بيعمل optimize للي إنت كتبته، مش للي إنت قصدته. تخيّل robot تنضيف، والـ reward بتاعه على كمية التراب اللي بيلمّها. الـ robot ممكن يكتشف إنه يوقّع سلة الزبالة، ويلمّ نفس التراب تاني وتاني. هو مش بايظ. هو حل بالظبط المشكلة اللي إنت كتبتها. عشان كده كتابة الـ reward هي أغلب الشغل، مش خطوة صغيرة قبله.",
+"l1-7":"دي جولة على applications حقيقية. ركّز إن كل واحدة متكتبة بنفس الشكل: الـ action إيه، والـ reward إيه. مثلاً AlphaGo: الـ action مكان الـ stone، والـ reward إنك تكسب. والـ balloons: الـ action تطلع أو تنزل، والـ reward إنها تفضل قريبة من مكانها. اتعوّد تشوف أي مشكلة بالشكل ده.",
+"l1-8":"النجاحات دي مش عشوائية. بتتجمّع عند أربع شروط. الـ reward ممكن يتقاس. الغلط رخيص، أو فيه simulator. القرار بيتكرر كتير. وفيه data أو interaction كفاية. بص على الـ Sepsis في الجدول. الغلط فيها خطر على مرضى، فالشرط التاني مش متحقق. فعوّضوه إنهم اتعلموا من decisions متسجّلة قبل كده.",
+"l1-9":"الخلاصة. RL للمشاكل اللي الـ feedback فيها بيقيّمك، وبيوصل متأخر، والـ actions بتاعتك هي اللي بتحدد الـ data. المجال كله loop واحد. والـ reward هو الـ specification. تحت فيه أسئلة شبه الامتحان. حاول تجاوب في دماغك الأول، وبعدين افتح الحل.",
+"l2-1":"في الـ chapter ده هنلعب الأول. إنت عند الدايرة الزرقا في grid تلاتة في أربعة. فيه كنز واحد بزائد عشرة، وكام فخ كل واحد بسالب خمسة، والباقي صفر. مش شايف الخريطة، ومعاك خمس moves. الفخ بياخد منك خمسة ومش بيوقّف اللعبة، والحيطة بتضيّع الـ move. العب دلوقتي، وخلي بالك من السطر الرمادي اللي بيتكتب جنبك.",
+"l2-2":"خلّينا نسمّي اللي عملته. إنت اللي كنت بتاخد القرار، ده الـ agent. الـ grid والفخاخ والكنز، ده الـ environment. القرار كان معتمد على إنت فين وفاضلّك كام move، ودي الـ state. اختيارك بين Up و Down و Left و Right، ده الـ action. والرقم اللي بيرجعلك بعد كل move، ده الـ reward. وخلي بالك: الـ reward هو feedback على step واحدة بس، مش حكم على اللعبة كلها.",
+"l2-3":"لو حطينا الخمسة دول على خط الزمن: S صفر، بعدين A صفر، بعدين R واحد و S واحد، وهكذا. ده اسمه trajectory، وهو بالظبط السطر اللي اتكتب وإنت بتلعب. سؤال بيتسأل كتير: ليه الـ reward بعد A t اسمه R t زائد واحد؟ لأنه بيوصل مع الـ state الجديدة، في الخطوة اللي بعدها. فالـ action رقم صفر بيجيب R واحد.",
+"l2-4":"فيه طريقين للكنز. الطريق الـ risky: يمين تلات مرات، من وسط الفخ، والـ rewards سالب خمسة، وصفر، وزائد عشرة. والطريق الـ safe: فوق، ويمين تلاتة، وتحت. خمس moves، والـ rewards أربع أصفار وبعدين زائد عشرة. طب أنهي أحسن؟ محتاجين رقم واحد للطريق كله.",
+"l2-5":"الرقم ده اسمه الـ Return، ورمزه G t. هو مجموع كل الـ rewards من دلوقتي لحد الآخر. الـ risky: سالب خمسة زائد صفر زائد عشرة، يعني خمسة. الـ safe: عشرة. يبقى الـ safe أحسن. والقاعدة المهمة: الـ agent بيعمل maximize للـ return، مش لأي reward لوحده.",
+"l2-6":"بس في الـ return ده، كنز بعد خطوة زي كنز بعد مية خطوة، وده مش منطقي دايماً. فبنضيف gamma، وهي رقم من صفر لواحد. أول reward بيتضرب في واحد، واللي بعده في gamma، واللي بعده في gamma تربيع، وهكذا. حرّك الـ slider وشوف الأعمدة. لو gamma قريبة من صفر، الـ agent قصير النظر. لو قريبة من واحد، بعيد النظر. ومثال الـ lecture: زائد عشرة بعد move واحدة، ولا زائد اتناشر بعد عشر moves؟ بـ gamma صفر فاصل تسعة، الاتناشر بتتضرب في gamma أُس تسعة، يعني حوالي صفر فاصل تسعة وتلاتين. فتبقى حوالي أربعة ونص بس. يبقى العشرة القريبة كسبت.",
+"l2-7":"دلوقتي افتراض مهم جداً اسمه الـ Markov property. عشان تتوقع اللي جاي، مش محتاج الـ history كلها. كفاية الـ state الحالية والـ action. دوس على اشطب الـ history وشوف. ونقطة بيحبوا يسألوا فيها: في لعبة الكنز، اللي إنت اكتشفته عن الخريطة مش جزء من الـ state. ده learning، وده شغل الـ algorithm. ولو الافتراض ده مش متحقق، بندخّل الحتة المهمة من الماضي في الـ state، زي DQN اللي بيحط آخر أربع frames.",
+"l2-8":"لو شيلنا الـ actions خالص، يبقى عندنا Markov process: states بتنتقل لبعض باحتمالات. بيتوصف بـ set of states و transition matrix. مثال الجو: S يعني Sunny و R يعني Rainy، مش reward. دوس على الـ pair الجاي وعدّ الانتقالات. من S فيه ست انتقالات: تلاتة لـ S وتلاتة لـ R، يعني نص ونص. ومن R فيه تلاتة: اتنين لـ S وواحد لـ R، يعني تلتين وتلت. وكل صف في الـ matrix مجموعه واحد.",
+"l2-9":"أول paper، وهو في الامتحان. Yahoo عايزين يختاروا أنهي خبر يظهر لكل زائر. الـ context هو features الزائر والأخبار، والـ action هو الخبر، والـ reward واحد لو عمل click. الـ algorithm اسمه LinUCB، وجاب clicks أكتر باتناشر ونص في المية. والسؤال المهم: ليه bandit مش full RL؟ لأن الخبر اللي بتعرضه مش بيغيّر مين الزائر الجاي، فمفيش مستقبل تخطط له.",
+"l2-10":"تمرين. thermostat بيتعلم إنت مرتاح على إيه. حاول تحدد الخمسة في دماغك: الـ agent، والـ environment، والـ state، والـ action، والـ reward. وبعدين افتح الإجابات. وخلي بالك: إنت نفسك جزء من الـ environment.",
+"l2-11":"الخلاصة: تمن كلمات هنستخدمهم لحد آخر الكورس. agent، و environment، و state، و action، و reward، و return، و gamma، و Markov property. تحت فيه أسئلة شبه الامتحان، منها مسألة حساب return بـ gamma نص. حلّها بإيدك الأول، وبعدين افتح الحل.",
+"l3-1":"في الـ chapter ده هنلعب لعبة جديدة: robot على أرض بتزحلق. الـ robot واقف على start وعايز يوصل للنجمة. إنت كاتب سهم في كل مربع، والـ robot بيمشي ورا السهم، بس النرد بيتدخل. لو النرد طلع من واحد لأربعة، بيمشي في اتجاه السهم. ولو طلع خمسة يلف تسعين درجة شمال، ولو طلع ستة يلف يمين. كل move بتاخد سالب واحد، والقنبلة سالب خمسة زيادة، والنجمة زائد عشرة. دوس على ارمي النرد وشوف round، وبعدين جرّب عشرة آلاف round. هتلاحظ إن مجموع كل round مختلف خالص، بس المتوسط بيثبت عند حوالي صفر فاصل واحد. وبعدين جرّب الأسهم الساذجة اللي بتروح للنجمة بخط مستقيم، وشوف المتوسط بتاعها بقى كام.",
+"l3-2":"دلوقتي خلّينا نسمّي اللي عملته. الأسهم اللي كتبتها، دي الـ policy. جدول النرد والنقط، ده الـ dynamics، يعني الـ world بترد إزاي. مجموع النقط في round واحد، ده الـ return. ومتوسط المجموع على rounds كتير لو بدأت من مربع معين، ده الـ value. ولاحظ إنك المرة دي كنت عارف النرد والخريطة، وده اسمه known model. في الـ lecture دي والجاية هنفضل كده، وبعدها هنتعلم من غير ما نعرف. والفرق المهم جداً: الـ return هو اللي حصل مرة واحدة، والـ value هو اللي بتتوقعه في المتوسط. مش نفس الحاجة أبداً. وافتح الأسئلة اللي تحت، خصوصاً سؤال: ليه الـ path مكانش كفاية؟",
+"l3-3":"دي قيمة كل مربع، لما الـ robot يمشي بالأسهم الأحسن. كل رقم هو متوسط المجموع اللي هيطلع لو بدأت من المربع ده. اللون بيقولك الحكاية: الأخضر قيمة عالية، والأحمر قيمة سالبة. المربعات الوحيدة اللي قيمتها أقل من صفر هي اللي في الركن الشمال تحت، لأنها بعيدة عن النجمة وقريبة من القنبلة. ومربع start قيمته صفر فاصل واحد، وده بالظبط الرقم اللي المتوسط كان بيقرّب له في الـ simulation. دوس على أي مربع وشوف قيمته.",
+"l3-4":"طيب الأرقام دي جت منين؟ مش لازم نلعب عشرين ألف round. الفكرة إن قيمة أي مربع بتتبني من قيم جيرانه. خد المربع اللي فوق على اليمين، وسهمه لتحت. لو النرد طلع من واحد لأربعة، وده أربعة من ستة، الـ robot بيوصل للنجمة ويكسب تسعة. لو طلع خمسة، الحركة بتبقى يمين، وفيه حيطة، فيفضل مكانه ويدفع واحد. ولو طلع ستة، بيروح المربع اللي على الشمال، ويدفع واحد، وقيمته ست فاصل ست. نجمّع التلاتة بالاحتمالات، فنلاقي إن القيمة حوالي تمانية فاصل واحد. لاحظ إن v ظهرت في الطرفين، فبنجيبها في ناحية واحدة ونحلّ. الفكرة دي هي Bellman equation، وهنكتبها بشكلها الصح بعد شوية. جرّب تدوس على أي مربع تاني وشوف نفس الحساب.",
+"l3-5":"نبدأ نرسم الصورة الرسمية. الـ Markov process فيه states واحتمالات انتقال. والـ MDP بيزوّد عليه حاجتين: اختيار وهدف. فيه خمس حاجات: الـ states، والـ actions، والـ dynamics، والـ reward، والـ discount. في لعبة الـ robot: الـ states هي المربعات، والـ actions هي الأسهم الأربعة، والـ dynamics هي جدول النرد مع النقط، والـ discount بواحد، لأن كل round بتخلص. الـ agent بيختار الـ action، والـ environment هو اللي بيختار الـ state الجديدة والـ reward. ونقطة مهمة: الـ state ده قرار تصميم. لو الـ agent محتاج حاجة مش موجودة فيه، المشكلة لسه مش MDP. frame واحدة من كورة بتتحرك مش كفاية، لأنها مش بتقول الكورة رايحة فين. الحل إنك تحط آخر أربع frames في الـ state، زي ما DQN بيعمل. جرّب الزرارين وشوف الفرق.",
+"l3-6":"الـ dynamics function هي قاعدة الـ environment. بتقول: لو أنا في state معينة وعملت action معينة، احتمال إني أوصل لـ state جديدة وآخد reward معين كام؟ ولكل زوج state و action، مجموع الاحتمالات لازم يبقى واحد. ومن الدالة دي بنطلّع رقمين بنستخدمهم طول الوقت. الأول احتمال إني أوصل لـ state معينة بس، من غير ما أهتم بالـ reward. والتاني الـ reward المتوقع لما أعمل الـ action ده في الـ state دي. اختار مربع وسهم، وشوف الجدول بيتكوّن إزاي. خد المربع اللي فوق على اليمين مع السهم لتحت: أربعة من ستة للنجمة بتسعة، وواحد من ستة يفضل مكانه، وواحد من ستة يروح الشمال. والـ reward المتوقع حوالي خمسة فاصل سبعة.",
+"l3-7":"دلوقتي أهم نقطة في تصميم أي مشكلة: الـ reward. القاعدة إنك تكافئ النتيجة اللي عايزها، مش الخطوات اللي إنت فاكرها هتوصّل. في الشطرنج، اديه زائد واحد للفوز وسالب واحد للخسارة. ما تديهوش على أكل القطع، لأنه ممكن يتعلم يبدّل القطع ويخسر. وفي لعبتنا، السالب واحد على كل move هو اللي بيقول للـ robot استعجل. جرّب بنفسك: عندنا طريق قصير بتلات moves، وطريق طويل بتسع moves، والاتنين بيوصلوا للنجمة. لو كل move بسالب واحد، القصير بيكسب. لو بصفر، الاتنين زي بعض، ومفيش حاجة تخليه يستعجل. ولو بزائد واحد، الطويل بيكسب، لأنه بياخد أجر عشان يتمشى. الـ agent هيلاقي أي shortcut الـ reward بتسمح بيه.",
+"l3-8":"رجعنا للـ return. هو مجموع الـ rewards من دلوقتي بعد الـ discount. وله شكل recursive هنستخدمه في كل حتة: الـ return دلوقتي يساوي الـ reward الجاي زائد gamma في الـ return اللي بعده. دوس على الخطوة الجاية وشوف إزاي بنحسبه من الآخر لورا. نبدأ من آخر reward خمسة، وبعدين كل خطوة بنضرب اللي بعدها في gamma ونزود الـ reward. وبنوصل لاتنين فاصل تلتمية وخمسة وسبعين، وهو نفس الرقم اللي طلع في الـ chapter اللي فات. وفيه نوعين tasks. episodic بتخلص في terminal state زي لعبة Go، وممكن gamma تبقى واحد. و continuing ما بتخلصش زي تحكم الأسانسير، وغالباً gamma أقل من واحد. لما gamma أقل من واحد، الـ return بيفضل محدود، ومبيزيدش عن أقصى reward مقسوم على واحد ناقص gamma. حرّك الـ slider وشوف الحد ده بيكبر إزاي لما gamma تقرب من واحد.",
+"l3-9":"الـ policy هي القاعدة اللي الـ agent بيختار بيها الـ action. مكتوبة pi من a بشرط s، يعني احتمال إني أختار a وأنا في s. لو الـ policy بتختار action واحد في كل state، دي deterministic، وأسهمك كانت منها. ولو بتدّي احتمال لكل action، دي stochastic. بنستخدم الـ stochastic عشان نعمل exploration وإحنا بنتعلم. ولازم منها كمان لو الـ agent مش شايف الـ state كاملة، أو بيلعب ضد حد، زي حجر ورقة مقص. بس في MDP شايف كل حاجة، الـ deterministic policy كفاية عشان تبقى optimal. وخلي بالك من لخبطة شائعة: النرد مش جزء من الـ policy. النرد ده الـ environment، والـ policy هي اللي إنت كتبته، يعني السهم.",
+"l3-10":"طيب نقيس الـ policy إزاي؟ بالـ value functions. قيمة الـ state هي الـ return المتوقع لو بدأت منها ومشيت بالـ policy. وقيمة الـ action هي الـ return المتوقع لو عملت الـ action ده دلوقتي، وبعدين كملت بالـ policy. الأولى اسمها v والتانية اسمها q. والاتنين مربوطين: v تساوي متوسط q، مقيّس باحتمالات الـ policy. حرّك الـ slider وشوف. لو الـ policy بتختار الـ action الأول بس، v بتساوي q بتاعته. ولو بتوزع بينهم، v بتبقى بين القيمتين. وليه محتاجين q وعندنا v؟ لأنك بـ q تقدر تختار أحسن action من غير ما تعرف الـ dynamics. وده سبب إن Q-learning بتشتغل بعدين.",
+"l3-11":"دلوقتي أهم معادلة في الكورس: Bellman equation. نبدأ من تعريف v، ونعوّض بإن الـ return يساوي الـ reward الجاي زائد gamma في الـ return اللي بعده. بنطلع بمعادلة بتقول: قيمة الـ state هي المتوسط، على اللي ممكن أعمله واللي ممكن العالم يعمله، بتاع الـ reward دلوقتي زائد gamma في قيمة المكان اللي هوصله. الرسمة بتوضح: من فوق الـ state، بنتفرع على الـ actions بالـ policy، وبعدين على الـ states الجاية بالـ dynamics. وده بالظبط اللي عملناه على المربع اللي فوق على اليمين، بس بسهم واحد و gamma بواحد. ومعادلة لكل state، يعني n states ليهم n معادلات و n مجاهيل. وفيه نسخة لـ q كمان: قيمة الاختيار هي الـ reward دلوقتي زائد قيمة اللي جاي. المعادلة دي هي فكرة dynamic programming الأسبوع الجاي، وبعدها temporal difference.",
+"l3-12":"نحلّها بإيدينا على مثال صغير. عندنا state اسمها A و state اسمها B، و gamma نص. من A، نص احتمال نفضل في A بـ reward صفر، ونص احتمال نروح B بـ reward اتنين. ومن B بنروح A دايماً بـ reward تلاتة. بنكتب معادلة لكل state، فيطلع عندنا معادلتين ومجهولين. نعوّض v بتاعة B في الأولى، ونجمّع، ونطلع إن v بتاعة A تساوي اتنين فاصل تمانية، و v بتاعة B تساوي أربعة فاصل أربعة. وللتأكد، نرجّع الأرقام في المعادلة ونشوف إنها بتطلع بالظبط. جرّب بنفسك: اكتب أي أرقام وشوف الفرق بين طرفي كل معادلة. أو دوس sweep، وشوف الأرقام بتقرب من الحل لوحدها. وده بالظبط اللي هنعمله في الـ lecture الجاية، لأن في المسائل الكبيرة مش هنقدر نحلّها بإيدينا.",
+"l3-13":"إيه بقى أحسن policy؟ policy بتبقى أحسن من التانية لو قيمتها أكبر أو بتساويها في كل state. والـ optimal value هي أعلى قيمة ممكنة لكل state. تلات حقايق تحفظها. أولاً، الـ optimal policy موجودة دايماً في أي MDP محدود. تانياً، ممكن يبقى فيه أكتر من واحدة، بس كلهم ليهم نفس v star و q star. وتالتاً، واحدة منهم على الأقل deterministic. ومعادلة Bellman optimality بتقول: قيمة الـ state هي أعلى قيمة بين الـ actions، يعني فيها max. والـ max بيخلّي المعادلة nonlinear، فمش هنحلها زي مثال A و B. دوس على أي مربع وشوف قيمة الأسهم الأربعة محسوبة من جيرانه. السهم الأعلى هو السهم اللي في الجدول، وقيمته هي قيمة المربع. ولو عرفت q star، تختار الأحسن بـ argmax من غير ما تحتاج الـ dynamics. والـ lectures الجاية كلها طرق لإيجاد القيم دي.",
+"l3-14":"الـ paper بتاع الأسبوع ده عن تصميم الـ chip، من Nature سنة ألفين وواحد وعشرين. المطلوب تقرا الـ formulation بس، مش الـ network. حاول تجاوب على الأسئلة التسعة بنفسك الأول، وبعدين افتح الإجابات. باختصار: الـ state هي الـ canvas والـ netlist مع اللي اتحط لحد دلوقتي. الـ action هي مكان الـ block الجاي على الـ grid. الـ episode بتخلص لما كل الـ blocks تتحط. والـ reward صفر طول الطريق، وفي الآخر بتتحسب من طول الأسلاك والـ congestion. والـ transition deterministic. والنقطة المهمة إن الـ reward هنا بديل للهدف الحقيقي، لأن الهدف الحقيقي بياخد وقت طويل يتقاس. وده من فهمي للـ paper، فراجع التفاصيل معاه.",
+"l3-15":"قبل ما تكتب أي MDP، خلي القايمة دي قدامك. الـ state ناقصة حاجة الـ agent محتاجها. الـ reward بتدفع على خطوة بدل الهدف. الـ reward بتيجي في الآخر خالص، فمفيش حاجة يتعلم منها بدري. الـ task مالهاش نهاية و gamma بواحد. الـ action space ضخم. والـ indexing غلط، لأن الـ action في الوقت t بيجيب R بتاعة t زائد واحد. جرّب الـ quiz: كل جملة فيها غلطة واحدة، واختار هي أنهي واحدة.",
+"l3-16":"الخلاصة. الـ MDP هي states و actions و dynamics و reward و discount. الـ policy هي القاعدة. الـ return هو اللي حصل مرة واحدة، والـ value هو المتوقع في المتوسط. معادلة Bellman بتكتب قيمة أي state من قيم اللي بعدها. والـ optimal policy ليها أعلى قيمة في كل state. تحت أربع أسئلة من الـ lecture، حلّها في دماغك الأول وبعدين افتح الحل. وفي الـ lecture الجاية، بنحلّ معادلات Bellman دي لما نعرف الـ dynamics، ودي اسمها dynamic programming."
+};
+const CUES={"l1-1": [[0.0, 2.0, "أهلاً بيك في أول chapter."], [2.0, 3.93, "خلّينا نبدأ بأربع مواقف."], [3.93, 10.52, "دكتور في الـ ICU لازم يقرر جرعة الـ fluid دلوقتي، بس هيعرف إذا كانت صح بعد أيام."], [10.52, 12.73, "لاعب Go بيحط stone، والنتيجة بتبان بعد مية move."], [12.73, 20.25, "مهندس بيحط block على الـ chip، ومش هيعرف إذا كان مكانه كويس غير لما كل الـ blocks تتحط."], [20.25, 25.16, "و balloon في الـ stratosphere بتطلع أو تنزل، وبتعرف النتيجة بعد ساعات."], [25.16, 28.82, "المشترك بينهم: القرار دلوقتي، والإجابة بعدين."], [28.82, 31.57, "ومحدش يقدر يدّيك label إن القرار ده صح."]], "l1-2": [[0.0, 5.12, "طب إيه المشترك بين الأربعة؟"], [5.12, 6.58, "أربع صفات."], [6.58, 8.58, "أولاً، الـ feedback بيقيّمك، مش بيصحّحلك."], [8.58, 15.79, "بتعرف إن المريض عاش، بس مش بتعرف الجرعة الأحسن كانت إيه."], [15.79, 18.78, "تانياً، الـ score بيوصل متأخر."], [18.78, 26.36, "الـ move اللي خسّرتك ممكن تكون من خمسين move فاتوا."], [26.36, 30.86, "تالتاً، اللي بتختاره بيغيّر اللي هتشوفه بعد كده."], [30.86, 36.63, "يعني الـ behavior بتاعك هو اللي بيعمل الـ data."], [36.63, 44.81, "ورابعاً، لازم تجرّب حاجات مش متأكد منها، ودي اسمها exploration."], [44.81, 50.41, "لو المشكلة فيها الأربع صفات دول، يبقى غالباً RL problem."]], "l1-3": [[0.0, 3.26, "دلوقتي الصورة اللي الكورس كله مبني عليها: الـ loop."], [3.26, 8.65, "الـ agent بيشوف الـ state، ويختار action، ويبعته للـ environment."], [8.65, 14.07, "الـ environment بيرد بحاجتين مع بعض: reward، وده رقم، و state جديدة."], [14.07, 15.99, "وبعدين نفس الحكاية تاني."], [15.99, 19.08, "دوس على الخطوة الجاية في الرسمة وتابع النقطة."], [19.08, 21.22, "الـ loop نفسه سهل جداً."], [21.22, 29.05, "الصعب إن الـ reward اللي جاي دلوقتي ممكن يكون نتيجة action اتاخد من زمان، فالـ agent لازم يعرف يوزّع الـ credit صح."], [29.05, 31.09, "ودي اسمها credit assignment."]], "l1-4": [[0.0, 6.46, "طب RL مختلف عن supervised learning في إيه؟"], [6.46, 18.78, "في supervised بيدّوك input والإجابة الصح، والـ data ثابتة."], [18.78, 22.3, "السؤال هناك: ده إيه؟"], [22.3, 25.44, "والنجاح إنك تطابق الـ label."], [25.44, 29.38, "في RL مفيش labels خالص."], [29.38, 39.41, "إنت بتعمل action، والـ world بترد، والردود دي هي الـ data."], [39.41, 45.61, "السؤال هنا: أعمل إيه دلوقتي؟"], [45.61, 52.73, "والنجاح إنك تجمع reward أكتر على مدار الوقت."]], "l1-5": [[0.0, 3.11, "ومهم جداً تعرف إمتى RL يبقى غلط."], [3.11, 6.92, "لو عندك الإجابة الصح لكل input، استخدم supervised."], [6.92, 11.74, "لو القرار مش بيأثر على اللي جاي، يبقى bandit، وده أبسط بكتير."], [11.74, 16.93, "لو الغلط خطر ومفيش simulator، الـ agent مش هيلاقي مكان يتعلم فيه."], [16.93, 21.51, "ولو مش قادر تكتب reward تثق فيه، المشكلة لسه مش جاهزة."], [21.51, 25.25, "جرّب الـ quiz اللي تحت، وشوف كل مشكلة تبقى إيه."]], "l1-6": [[0.0, 5.09, "ودي أهم نقطة في الـ lecture."], [5.09, 10.79, "الـ agent بيعمل optimize للي إنت كتبته، مش للي إنت قصدته."], [10.79, 21.12, "تخيّل robot تنضيف، والـ reward بتاعه على كمية التراب اللي بيلمّها."], [21.12, 29.21, "الـ robot ممكن يكتشف إنه يوقّع سلة الزبالة، ويلمّ نفس التراب تاني وتاني."], [29.21, 31.92, "هو مش بايظ."], [31.92, 36.74, "هو حل بالظبط المشكلة اللي إنت كتبتها."], [36.74, 45.17, "عشان كده كتابة الـ reward هي أغلب الشغل، مش خطوة صغيرة قبله."]], "l1-7": [[0.0, 2.15, "دي جولة على applications حقيقية."], [2.15, 7.24, "ركّز إن كل واحدة متكتبة بنفس الشكل: الـ action إيه، والـ reward إيه."], [7.24, 12.3, "مثلاً AlphaGo: الـ action مكان الـ stone، والـ reward إنك تكسب."], [12.3, 17.82, "والـ balloons: الـ action تطلع أو تنزل، والـ reward إنها تفضل قريبة من مكانها."], [17.82, 20.81, "اتعوّد تشوف أي مشكلة بالشكل ده."]], "l1-8": [[0.0, 1.92, "النجاحات دي مش عشوائية."], [1.92, 4.04, "بتتجمّع عند أربع شروط."], [4.04, 5.85, "الـ reward ممكن يتقاس."], [5.85, 7.97, "الغلط رخيص، أو فيه simulator."], [7.97, 9.21, "القرار بيتكرر كتير."], [9.21, 13.21, "وفيه data أو interaction كفاية."], [13.21, 15.16, "بص على الـ Sepsis في الجدول."], [15.16, 19.39, "الغلط فيها خطر على مرضى، فالشرط التاني مش متحقق."], [19.39, 23.77, "فعوّضوه إنهم اتعلموا من decisions متسجّلة قبل كده."]]};
+const ICON={spk:'<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+  play:'<svg viewBox="0 0 24 24"><path d="M17 5L7 12l10 7z" fill="currentColor"/></svg>',
+  pause:'<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3"/></svg>'};
+const aud=$("#aud");
+const pref={rate:store.get("rl-rate","1")};
+$("#plRate").value=pref.rate;
+const P={q:[],qi:0,chapter:false,open:false,ci:-1};
+const curId=()=>P.q[P.qi];
+const mmss=s=>isFinite(s)?Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0"):"0:00";
+function setRate(){aud.defaultPlaybackRate=+pref.rate;aud.playbackRate=+pref.rate}
+function load(i,auto){
+  P.qi=i;P.ci=-1;aud.src="audio/"+curId()+".mp3";setRate();markScene(P.chapter);renderPlayer();
+  if(auto)aud.play().catch(()=>{$("#plCap").textContent="دوس تشغيل عشان يبدأ."});
+  if("mediaSession" in navigator){try{const sc=document.getElementById(curId());navigator.mediaSession.metadata=new MediaMetadata({title:sc?sc.dataset.t:"RL",artist:"حكاية RL",album:"DSAI 402"})}catch(e){}}
+}
+function markScene(scroll){
+  $$(".scene.speaking").forEach(s=>s.classList.remove("speaking"));
+  const el=document.getElementById(curId()); if(!el)return; el.classList.add("speaking");
+  if(scroll)el.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});
+}
+function play(ids,chapter){
+  P.q=ids;P.chapter=chapter;P.open=true;
+  $("#player").hidden=false;document.body.classList.add("playing");
+  load(0,true);
+}
+function stopN(){
+  aud.pause();aud.removeAttribute("src");aud.load();
+  P.open=false;P.q=[];$("#player").hidden=true;document.body.classList.remove("playing");
+  $$(".scene.speaking").forEach(s=>s.classList.remove("speaking"));syncBtns();
+}
+function cueAt(t){const c=CUES[curId()]||[];let k=0;for(let i=0;i<c.length;i++)if(t>=c[i][0]-0.05)k=i;return k}
+function renderPlayer(){
+  const id=curId(), sc=document.getElementById(id), c=CUES[id]||[];
+  const k=P.ci<0?0:P.ci;
+  $("#plWhere").textContent=(P.chapter?"الـ chapter كله · ":"")+"مشهد "+(sc?sc.querySelector(".n").textContent+" · "+sc.dataset.t:"")+" · جملة "+(k+1)+" من "+c.length;
+  $("#plCap").textContent=c[k]?c[k][2]:""; isolate($("#plCap")); isolate($("#plWhere"));
+  $("#plPlay").innerHTML=aud.paused?ICON.play:ICON.pause;
+  syncBtns();
+}
+function syncBtns(){
+  $$(".say").forEach(b=>{const on=P.open&&!P.chapter&&P.q[0]===b.dataset.id;b.classList.toggle("on",on);b.querySelector("span").textContent=on?"شغّال":"اسمع"});
+  $$(".listen").forEach(b=>b.classList.toggle("on",P.open&&P.chapter&&P.q[0]===b.dataset.first));
+}
+aud.addEventListener("timeupdate",()=>{
+  const k=cueAt(aud.currentTime); if(k!==P.ci){P.ci=k;renderPlayer()}
+  if(aud.duration){$("#plSeek").value=Math.round(aud.currentTime/aud.duration*1000)}
+  $("#plT").textContent=mmss(aud.currentTime);
+});
+aud.addEventListener("loadedmetadata",()=>{$("#plD").textContent=mmss(aud.duration);setRate()});
+aud.addEventListener("play",renderPlayer);aud.addEventListener("pause",renderPlayer);
+aud.addEventListener("ended",()=>{if(P.chapter&&P.qi<P.q.length-1)load(P.qi+1,true);else{renderPlayer();$("#plCap").textContent="خلص. دوس تشغيل لو عايز تسمعه تاني."}});
+aud.addEventListener("error",()=>{if(!P.open)return;$("#plCap").textContent="الصوت مااتحملش. اتأكد من النت ودوس تشغيل تاني."});
+$("#plPlay").addEventListener("click",()=>{if(!P.q.length)return;if(aud.paused){if(aud.ended)aud.currentTime=0;aud.play().catch(()=>{})}else aud.pause()});
+$("#plNext").addEventListener("click",()=>{const c=CUES[curId()]||[],k=cueAt(aud.currentTime);if(k<c.length-1){aud.currentTime=c[k+1][0];if(aud.paused)aud.play().catch(()=>{})}else if(P.qi<P.q.length-1)load(P.qi+1,true)});
+$("#plPrev").addEventListener("click",()=>{const c=CUES[curId()]||[],k=cueAt(aud.currentTime);if(c[k]&&aud.currentTime-c[k][0]>1.5)aud.currentTime=c[k][0];else if(k>0)aud.currentTime=c[k-1][0];else if(P.qi>0)load(P.qi-1,true);else aud.currentTime=0;if(aud.paused)aud.play().catch(()=>{})});
+$("#plSeek").addEventListener("input",e=>{if(aud.duration)aud.currentTime=e.target.value/1000*aud.duration});
+$("#plRate").addEventListener("change",e=>{pref.rate=e.target.value;store.set("rl-rate",pref.rate);setRate()});
+$("#plStop").addEventListener("click",stopN);
+if("mediaSession" in navigator){try{
+  navigator.mediaSession.setActionHandler("nexttrack",()=>$("#plNext").click());
+  navigator.mediaSession.setActionHandler("previoustrack",()=>$("#plPrev").click());
+}catch(e){}}
+$$(".scene").forEach(s=>{if(!CUES[s.id])return;const b=document.createElement("button");b.className="say";b.dataset.id=s.id;b.innerHTML=ICON.spk+"<span>اسمع</span>";b.setAttribute("aria-label","اسمع شرح المشهد ده");
+  b.addEventListener("click",()=>{if(P.open&&!P.chapter&&P.q[0]===s.id)stopN();else play([s.id],false)});s.querySelector(".sh").append(b)});
+$$(".chapter").forEach(a=>{const ids=$$(".scene",a).map(s=>s.id).filter(id=>CUES[id]);if(!ids.length)return;
+  const b=document.createElement("button");b.className="listen";b.dataset.first=ids[0];b.innerHTML=ICON.spk+"اسمع الـ chapter كله";
+  b.addEventListener("click",()=>{if(P.open&&P.chapter&&P.q[0]===ids[0])stopN();else play(ids,true)});a.querySelector(".chead").append(b)});
+window.addEventListener("hashchange",()=>{if(P.open)stopN()});
+
+/* ---------- boot ---------- */
+isolate(document.querySelector(".wrap"));
+const start=location.hash.slice(1)||store.get("rl-story-last","l1");
+show(start,false);
+})();
+</script>

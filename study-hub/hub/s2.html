@@ -1,0 +1,228 @@
+<article class="chapter" id="ch-s2" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">SPEECH · LECTURE 2 · FOUNDATIONS</span>
+      <h2>الـ 16,000 رقم دول جايين منين؟</h2>
+      <p>في Lecture 1 قلنا إن الـ machine بتستلم 16,000 رقم في الثانية. النهارده هنمشي مع الصوت من بُق اللي بيتكلم لحد الكمبيوتر: الـ syllable، والموجة، والـ sampling، والـ quantization. وبعدين نشوف ليه الـ vowels مختلفة عن بعض، ونجمّع كل ده في صورة واحدة اسمها spectrogram.</p>
+    </div>
+
+    <section class="scene" id="s2-1" data-t="الـ syllable">
+      <div class="sh"><span class="n">1</span><h3>إحنا بنحاول نتعرّف على إيه؟</h3></div>
+      <p class="lead">أصغر حتة كلام بننطقها مرة واحدة اسمها <b>syllable</b>. كل syllable ليها <b class="cA">nucleus</b> واحد بالظبط (غالباً vowel). الـ consonants اللي قبله اسمها <b class="cS">onset</b>، واللي بعده اسمها <b class="cR">coda</b>. والـ nucleus مع الـ coda اسمهم <b>rime</b>.</p>
+      <div class="seg" id="s2w" role="group" aria-label="اختار كلمة">
+        <button type="button" data-w="banana" aria-pressed="true">banana</button>
+        <button type="button" data-w="cat" aria-pressed="false">cat</button>
+        <button type="button" data-w="strengths" aria-pressed="false">strengths</button>
+        <button type="button" data-w="button" aria-pressed="false">button</button>
+        <button type="button" data-w="madrasa" aria-pressed="false">مَدْرَسَة</button>
+      </div>
+      <div id="s2syl"></div>
+      <div class="legend"><span class="tag tS">onset</span><span class="tag tA">nucleus</span><span class="tag tR">coda</span><span class="tag tE">rime = nucleus + coda</span></div>
+      <p class="small" id="s2sylMsg"></p>
+      <p class="bridge">الـ nucleus غالباً vowel. طب إيه الفرق بين الـ vowel والـ consonant؟</p>
+    </section>
+
+    <section class="scene" id="s2-2" data-t="Vowel ولا consonant">
+      <div class="sh"><span class="n">2</span><h3>Vowel ولا consonant؟</h3></div>
+      <div class="grid2">
+        <div class="card"><h4>Vowels</h4><span class="small">الـ vocal tract مفتوح ومفيش عائق كبير. غالباً <b>voiced</b>. هي اللي شايلة الـ nucleus، وبتبقى أعلى وأطول.</span></div>
+        <div class="card"><h4>Consonants</h4><span class="small">فيه تضييق للهوا (الشفايف، أو اللسان، أو السنان). ممكن تبقى voiced زي <span class="ltr">/b/, /n/</span> أو voiceless زي <span class="ltr">/p/, /s/</span>. وأنواعها: plosive، و fricative، و nasal.</span></div>
+      </div>
+      <p class="small">دوس على أي صوت وشوف هو إيه:</p>
+      <div class="seg" id="s2snd" role="group" aria-label="الأصوات"></div>
+      <div class="panel" id="s2sndOut"></div>
+      <p class="bridge">طب لو بصّينا على الموجة نفسها، نفرّقهم إزاي؟ لازم نفهم الموجة الأول.</p>
+    </section>
+
+    <section class="scene" id="s2-3" data-t="Amplitude و frequency و period">
+      <div class="sh"><span class="n">3</span><h3>الموجة: amplitude و frequency و period</h3></div>
+      <p class="lead">الصوت هو ضغط الهوا وهو بيتغير مع الوقت. الـ <b>waveform</b> بترسم الضغط ده (الـ y) قصاد الوقت (الـ x). وأبسط صوت هو pure tone، يعني sine wave:</p>
+      <div class="mb">y = A · sin(2π f t)</div>
+      <div class="two">
+        <div id="s2sine"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+          <div class="ctl"><label for="s2A">Amplitude <span class="m">A</span></label><input type="range" id="s2A" min="0.1" max="1" step="0.05" value="0.8"><output id="s2AO"></output></div>
+          <div class="ctl"><label for="s2f">Frequency <span class="m">f</span></label><input type="range" id="s2f" min="100" max="1000" step="10" value="440"><output id="s2fO"></output></div>
+          <div class="readout" id="s2sineR"></div>
+          <ul class="clean small">
+            <li><b>Amplitude</b>: حجم الهزة. أكبر يعني صوت أعلى. وزرار الـ volume بيكبّر الموجة بس، الشكل نفسه ما بيتغيرش.</li>
+            <li><b>Frequency</b>: عدد الـ cycles في الثانية. وحدتها <b>Hertz</b>: <span class="m">1 Hz = 1 cycle/s</span>.</li>
+            <li><b>Period</b>: وقت cycle واحدة: <span class="m">T = 1 / f</span>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note"><b>مثال المحاضرة</b>tone عند <span class="m">440 Hz</span> بيكرر نفسه كل <span class="m">T = 1/440 ≈ 2.27 ms</span>. سيب الـ slider على 440 وشوف الـ T.</div>
+      <p class="bridge">بس الكلام مش pure tone. فيه نوعين صوت مختلفين خالص.</p>
+    </section>
+
+    <section class="scene" id="s2-4" data-t="Voiced ولا voiceless">
+      <div class="sh"><span class="n">4</span><h3>Voiced ولا voiceless؟</h3></div>
+      <div class="seg" id="s2vv" role="group" aria-label="نوع الصوت">
+        <button type="button" data-k="tone" aria-pressed="false">pure tone</button>
+        <button type="button" data-k="voiced" aria-pressed="true">voiced (vowel)</button>
+        <button type="button" data-k="noise" aria-pressed="false">voiceless (/s/)</button>
+      </div>
+      <div id="s2vvPlot"></div>
+      <p class="small" id="s2vvMsg"></p>
+      <figure class="fig"><img src="img/lec2_waveform_cat.webp" alt="waveform of the word cat" loading="lazy"><figcaption>كلمة <span class="ltr">"cat"</span> من المحاضرة: الـ burst بتاع الـ <span class="ltr">/k/</span> وبعده aspiration (noise)، داخلين على طول في الـ <span class="ltr">/æ/</span> الـ voiced والـ periodic. وبعدين silence واللسان بيقفل عشان الـ <span class="ltr">/t/</span>، وبعده الـ release burst.</figcaption></figure>
+      <p class="bridge">دلوقتي عندنا موجة متصلة. الكمبيوتر هيخزنها إزاي؟</p>
+    </section>
+
+    <section class="scene" id="s2-5" data-t="Sampling و Nyquist">
+      <div class="sh"><span class="n">5</span><h3>الـ sampling: ناخد قياس كل شوية</h3></div>
+      <p class="lead">الموجة الحقيقية <b>continuous</b>، يعني فيها عدد لا نهائي من القيم. الكمبيوتر ما يقدرش يخزن ده، فبيقيس الـ amplitude كل فترة ثابتة ويحتفظ بالنقط دي بس. عدد القياسات في الثانية اسمه <b>sampling rate</b> <span class="m">f<sub>s</sub></span>.</p>
+      <div class="three">
+        <div class="stat"><span class="small">الموبايل واللابتوب</span><span class="v">44.1 / 48 <small>kHz</small></span></div>
+        <div class="stat"><span class="small">أغلب الـ ASR models</span><span class="v">16 <small>kHz</small></span><span class="xs small">wideband speech</span></div>
+        <div class="stat"><span class="small">التليفون</span><span class="v">8 <small>kHz</small></span><span class="xs small">narrowband، بيعدّي تقريباً 300–3400 Hz بس</span></div>
+      </div>
+      <div class="mb">f<sub>s</sub> &gt; 2 · f<sub>max</sub>  ·  Nyquist frequency = f<sub>s</sub> / 2</div>
+      <p>الـ <b>Nyquist rule</b>: الـ sampling rate يقدر يمثّل بس الـ frequencies اللي أقل من نصّه. وأي frequency أعلى من النص ما بتختفيش. بتطلع موجة مزيفة أوطى، وده اسمه <b class="cN">aliasing</b>. حرّك الـ sliders:</p>
+      <div id="s2samp"></div>
+      <div class="grid2">
+        <div class="ctl"><label for="s2fs">Sampling rate <span class="m">f<sub>s</sub></span></label><input type="range" id="s2fs" min="2" max="40" step="1" value="11"><output id="s2fsO"></output></div>
+        <div class="ctl"><label for="s2sf">موجة حقيقية <span class="m">f</span></label><input type="range" id="s2sf" min="1" max="20" step="0.5" value="9"><output id="s2sfO"></output></div>
+      </div>
+      <div class="readout" id="s2sampR"></div>
+      <p class="small" id="s2sampMsg"></p>
+      <div class="note"><b>القانون</b>الـ frequency اللي فوق النص بتطلع عند <span class="m">|f − k · f<sub>s</sub>|</span>، و<span class="m">k</span> هو أقرب مضاعف لـ <span class="m">f<sub>s</sub></span>. مثال المحاضرة: <span class="m">f<sub>s</sub> = 11 Hz</span>، يعني الـ Nyquist هو <span class="m">5.5 Hz</span>، وموجة <span class="m">9 Hz</span> بتظهر كأنها <span class="m">|9 − 11| = 2 Hz</span>.</div>
+      <div class="note"><b>ليه 16 kHz؟</b>بيحتفظ بكل حاجة تحت <span class="m">8 kHz</span>، وده بيغطي أهم الـ frequencies اللي بنفهم بيها الكلام. عشان كده هو الـ standard في الـ ASR.</div>
+      <p class="bridge">كده قسّمنا الوقت لنقط. فاضل الـ amplitude نفسه: هنخزنه بدقة قد إيه؟</p>
+    </section>
+
+    <section class="scene" id="s2-6" data-t="Quantization">
+      <div class="sh"><span class="n">6</span><h3>الـ quantization: نقرّب كل قيمة</h3></div>
+      <p class="lead">كل sample بتتقرّب لأقرب مستوى من عدد ثابت من المستويات. العدد ده بيحدده الـ <b>bit depth</b>، يعني عدد الـ bits في كل sample. وعندك <span class="m">n</span> bits تقدر تمثّل <span class="m">2<sup>n</sup></span> مستوى.</p>
+      <div id="s2q"></div>
+      <div class="ctl"><label for="s2bits">Bit depth</label><input type="range" id="s2bits" min="1" max="8" step="1" value="3"><output id="s2bitsO"></output></div>
+      <div class="readout" id="s2qR"></div>
+      <p class="small">bits أقل يعني مستويات أقل، فتلاقي «سلّم» واضح و noise مسموع. والفرق بين الموجة الأصلية والسلّم ده اسمه <b>quantization noise</b>. في الـ <b>16-bit</b> عندك <span class="m">2<sup>16</sup> = 65,536</span> مستوى، فالـ noise ده أصغر بكتير من إنك تسمعه.</p>
+      <p class="bridge">بقى عندنا أرقام. بس الكلام بيتغير كل لحظة، فإزاي نحلّله؟</p>
+    </section>
+
+    <section class="scene" id="s2-7" data-t="Framing">
+      <div class="sh"><span class="n">7</span><h3>الـ framing: نقطّع الكلام لحتت صغيرة</h3></div>
+      <p class="lead">الكلام <b>non-stationary</b>: الـ frequencies بتاعته بتتغير كل لحظة. بس أغلب أدوات التحليل (زي الـ DFT في Lecture 3) بتفترض إن الـ signal ثابتة جوه الحتة اللي بتبص عليها. الحل إننا نقطّعه لـ frames قصيرة ومتداخلة، قصيرة كفاية إنها تبان ثابتة جواها.</p>
+      <div id="s2fr"></div>
+      <div class="grid2">
+        <div class="ctl"><label for="s2L">Frame length</label><input type="range" id="s2L" min="10" max="50" step="5" value="25"><output id="s2LO"></output></div>
+        <div class="ctl"><label for="s2H">Hop</label><input type="range" id="s2H" min="5" max="25" step="5" value="10"><output id="s2HO"></output></div>
+      </div>
+      <div class="readout" id="s2frR"></div>
+      <p class="small">كل frame بتتضرب في <b>window</b> (زي الـ Hamming) بيخلّي الأطراف تقرّب للصفر. والـ overlap بيضمن إن الـ sample اللي اتظلمت على طرف frame، تاخد وزنها كامل في الـ frame اللي بعدها.</p>
+      <div class="note"><b>هتشوفها تاني</b>الـ frame length والـ hop هيرجعوا بنفس الشكل في الـ STFT والـ MFCC في Lecture 3.</div>
+      <p class="bridge">دلوقتي نوصف الصوت اللي جوه كل frame. هنا فيه كلمات ناس كتير بتلخبط بينها.</p>
+    </section>
+
+    <section class="scene" id="s2-8" data-t="Pitch و loudness و intensity و F0">
+      <div class="sh"><span class="n">8</span><h3>اللي بنقيسه، واللي بنحسّه</h3></div>
+      <div class="tblwrap"><table class="cmp">
+        <tr><th></th><th>بنقيسه من الـ signal (physical)</th><th>الـ listener بيحسّه (perceived)</th></tr>
+        <tr><td>جانب الـ frequency</td><td><b>F0</b> (fundamental frequency): سرعة اهتزاز الـ vocal folds، يعني <span class="m">1 / T</span></td><td><b>Pitch</b>: الصوت عالي ولا واطي</td></tr>
+        <tr><td>جانب الـ amplitude</td><td><b>Intensity</b>: القدرة اللي في الموجة، <span class="m">I ∝ A²</span>، بالـ dB</td><td><b>Loudness</b>: الصوت عالي ولا واطي في ودنك</td></tr>
+      </table></div>
+      <p class="small">مرتبطين ببعض جامد، بس مش نفس الحاجة. الإحساس nonlinear، وبيعتمد على الـ frequency.</p>
+      <div class="panel">
+        <h4>لو كبّرت الـ amplitude، الـ intensity بتزيد قد إيه؟</h4>
+        <div class="ctl"><label for="s2amp">اضرب الـ A في</label><input type="range" id="s2amp" min="-2" max="2" step="0.25" value="1"><output id="s2ampO"></output></div>
+        <div class="readout" id="s2ampR"></div>
+      </div>
+      <p class="bridge">الـ F0 مش رقم واحد للجملة كلها. بيتغير وإنت بتتكلم.</p>
+    </section>
+
+    <section class="scene" id="s2-9" data-t="الـ pitch contour">
+      <div class="sh"><span class="n">9</span><h3>الـ F0 مع الوقت: الـ pitch contour</h3></div>
+      <p class="lead">لو حسبنا الـ F0 لكل frame هيطلع لنا خط اسمه <b>pitch contour</b> (أو pitch track). ونفس الكلام بـ contour مختلف ممكن يبقى معناه مختلف.</p>
+      <div class="seg" id="s2pc" role="group" aria-label="الجملة">
+        <button type="button" data-k="both" aria-pressed="true">الاتنين</button>
+        <button type="button" data-k="st" aria-pressed="false">"You're coming."</button>
+        <button type="button" data-k="q" aria-pressed="false">"You're coming?"</button>
+      </div>
+      <div id="s2pcPlot"></div>
+      <ul class="clean small">
+        <li>الجملة الخبرية: الـ F0 بيقع لتحت. السؤال: الـ F0 بيطلع لفوق.</li>
+        <li>الخط بيتقطع عند الـ <span class="ltr">/k/</span> بتاع <span class="ltr">"coming"</span>، عشان الـ F0 موجود بس لما الـ vocal folds بتهتز، والـ <span class="ltr">/k/</span> voiceless. والتقطيع ده هو اللي هتعلّم عليه voiced/unvoiced في Assignment 2.</li>
+        <li>والـ intensity بنقيسها بنفس الطريقة لكل frame، بالـ <b>RMS</b> (root-mean-square) amplitude.</li>
+      </ul>
+      <p class="bridge">طب لو الـ F0 هو هو، إيه اللي بيخلّي «إي» تفرق عن «آه»؟</p>
+    </section>
+
+    <section class="scene" id="s2-10" data-t="الـ source–filter model">
+      <div class="sh"><span class="n">10</span><h3>الـ source–filter model</h3></div>
+      <div class="grid2">
+        <div class="card"><h4 class="cS">Source</h4><span class="small">في الأصوات الـ voiced، الـ vocal folds بتهتز وتطلّع buzz مليان <b>harmonics</b> (مضاعفات الـ F0). وفي الـ voiceless، الـ source بيبقى turbulent noise عند تضييق، ومفيش F0 خالص. والـ voiced fricatives زي <span class="ltr">/z/, /v/</span> بتستخدم المصدرين مع بعض.</span></div>
+        <div class="card"><h4 class="cA">Filter</h4><span class="small">الـ vocal tract (الزور، والبُق، والمناخير) تجويف بيعمل resonance. شكله، اللي بيحدده اللسان والفك والشفايف، بيكبّر frequencies ويكتم غيرها. الـ frequencies اللي بيكبّرها اسمها <b>formants</b>.</span></div>
+      </div>
+      <div class="two">
+        <div id="s2sf3"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+          <div class="ctl"><label for="s2f0">F0 (الـ source)</label><input type="range" id="s2f0" min="80" max="300" step="5" value="120"><output id="s2f0O"></output></div>
+          <div class="seg" id="s2vow" role="group" aria-label="الـ vowel (الـ filter)">
+            <button type="button" data-v="i" aria-pressed="true">"ee" /i/</button>
+            <button type="button" data-v="a" aria-pressed="false">"ah" /ɑ/</button>
+            <button type="button" data-v="u" aria-pressed="false">"oo" /u/</button>
+          </div>
+          <div class="readout" id="s2sfR"></div>
+          <p class="small">غيّر الـ F0: الخطوط (الـ harmonics) بتتحرك، بس القمم ثابتة في مكانها. غيّر الـ vowel: القمم بتتنقل، والـ harmonics مكانها.</p>
+        </div>
+      </div>
+      <div class="note"><b>جرّبها على نفسك</b>قول «إي» وبعدين «آه» وإيدك على زورك. الـ buzz (الـ source) تقريباً ما اتغيرش، بس الصوت اتغير خالص. ده شغل الـ filter.</div>
+      <p class="bridge">أهم اتنين formants اسمهم F1 و F2. نحطهم على خريطة.</p>
+    </section>
+
+    <section class="scene" id="s2-11" data-t="F1 و F2">
+      <div class="sh"><span class="n">11</span><h3>F1 و F2: خريطة الـ vowels</h3></div>
+      <div class="grid2">
+        <div class="card"><b>F1 ↔ ارتفاع اللسان</b><span class="small">لسان عالي زي «ee» يعني F1 واطي. ولسان واطي زي «ah» يعني F1 عالي.</span></div>
+        <div class="card"><b>F2 ↔ اللسان لقدّام ولا لورا</b><span class="small">لقدّام زي «ee» يعني F2 عالي. ولورا زي «oo» يعني F2 واطي. ولما الشفايف تدوّر، الـ F2 بيقلّ كمان.</span></div>
+      </div>
+      <div class="two">
+        <div id="s2vs"></div>
+        <div class="panel" id="s2vsOut"></div>
+      </div>
+      <p class="src">الأرقام دي متوسطات رجالة من Peterson &amp; Barney (1952). مش من السلايدز، هي مرجع مشهور عشان تشوف الشكل.</p>
+      <div class="note warn"><b>خد بالك</b>الـ vocal tract الأقصر (ستات وأطفال) بيعلّي <b>كل</b> الـ formants. عشان كده الـ ASR بيحتاج speaker normalization.</div>
+      <p class="bridge">كل اللي فات (الوقت، والـ frequency، والطاقة، والـ formants) بيبان في صورة واحدة.</p>
+    </section>
+
+    <section class="scene" id="s2-12" data-t="الـ spectrogram">
+      <div class="sh"><span class="n">12</span><h3>الـ spectrogram: صورة للصوت</h3></div>
+      <figure class="fig"><img src="img/lec2_spectrogram_banana.webp" alt="waveform and spectrogram of ba na na" loading="lazy"><figcaption>«ba · na · na» من المحاضرة. فوق الـ waveform، وتحت الـ spectrogram: الـ x هو الوقت، والـ y هو الـ frequency، والأغمق معناه طاقة أكتر.</figcaption></figure>
+      <div class="grid2">
+        <div class="card"><b>Vowel</b><span class="small">خطوط رأسية (كل خط = اهتزازة من الـ vocal folds)، وفيها شرايط أفقية غامقة تخينة هي الـ <b>formants</b>: F1 تحت و F2 فوقه.</span></div>
+        <div class="card"><b>Nasal</b><span class="small">لسه voiced بس أضعف، والطاقة أغلبها في شريط واطي قريب من 250 Hz. مفيش burst ومفيش silence.</span></div>
+        <div class="card"><b>Burst</b><span class="small">لطشة رأسية رفيعة. الـ <span class="ltr">/b/</span> هنا قصير وضعيف.</span></div>
+        <div class="card"><b>Silence</b><span class="small">مساحة فاضية.</span></div>
+      </div>
+      <p class="small">في Praat الصورة رمادي، والأغمق = طاقة أكتر. وفي color maps زي magma، الأفتح = طاقة أكتر.</p>
+      <h4>اقرأ الـ spectrogram</h4>
+      <div class="qz" id="s2quizSp"></div><p class="score" id="s2quizSpS"></p>
+      <p class="bridge">نلمّ الـ lecture.</p>
+    </section>
+
+    <section class="scene" id="s2-13" data-t="لخّص واختبر نفسك">
+      <div class="sh"><span class="n">13</span><h3>الخلاصة، واختبر نفسك</h3></div>
+      <div class="cheat">
+        <div class="card"><b>Syllable</b><span class="small">onset + nucleus + coda. والـ nucleus واحد بس.</span></div>
+        <div class="card"><b class="ltr">T = 1/f</b><span class="small">الـ voiced quasi-periodic، والـ voiceless noise.</span></div>
+        <div class="card"><b>Sampling</b><span class="small">بيقطّع الوقت. <span class="m">f<sub>s</sub> &gt; 2f<sub>max</sub></span>، و16 kHz هو الـ standard.</span></div>
+        <div class="card"><b>Quantization</b><span class="small">بيقطّع الـ amplitude. <span class="m">2<sup>n</sup></span> مستوى، و16-bit هو الـ standard.</span></div>
+        <div class="card"><b>Framing</b><span class="small">25 ms frame و10 ms hop.</span></div>
+        <div class="card"><b>F0 / intensity</b><span class="small">بنقيسهم. والـ pitch والـ loudness بنحسّهم.</span></div>
+        <div class="card"><b>F1 / F2</b><span class="small">F1 = ارتفاع اللسان، و F2 = لقدّام ولا لورا (والتدوير).</span></div>
+        <div class="card"><b>Spectrogram</b><span class="small">الوقت × الـ frequency × الطاقة في صورة واحدة.</span></div>
+      </div>
+      <h4>احسب</h4>
+      <details class="rv"><summary>tone عند 250 Hz، الـ period بتاعه كام؟</summary><div class="ans"><p><span class="m">T = 1/250 = 0.004 s = 4 ms</span></p></div></details>
+      <details class="rv"><summary>عايز تسجّل صوت فيه frequencies لحد 8 kHz. أقل sampling rate إيه؟</summary><div class="ans"><p>لازم <span class="m">f<sub>s</sub> &gt; 2 × 8 = 16 kHz</span>. عشان كده الـ 16 kHz هو الـ standard.</p></div></details>
+      <details class="rv"><summary>تليفون بيعمل sample عند 8 kHz، وفيه tone عند 5 kHz دخل من غير filter. هيظهر عند كام؟</summary><div class="ans"><p>الـ Nyquist هو <span class="m">4 kHz</span>، والـ 5 kHz أعلى منه، فيحصل aliasing: <span class="m">|5 − 8| = 3 kHz</span>.</p></div></details>
+      <details class="rv"><summary>8-bit audio فيه كام مستوى؟ و4-bit؟</summary><div class="ans"><p><span class="m">2<sup>8</sup> = 256</span> و<span class="m">2<sup>4</sup> = 16</span>. كل bit بتشيلها بتقسم المستويات على 2.</p></div></details>
+      <details class="rv"><summary>الـ amplitude اتضاعف. الـ intensity اتغيرت قد إيه؟</summary><div class="ans"><p><span class="m">I ∝ A²</span>، يعني ×4، وده تقريباً <span class="m">+6 dB</span>.</p></div></details>
+      <details class="rv"><summary>مين الـ F1 بتاعه أعلى: «ee» ولا «ah»؟ وليه؟</summary><div class="ans"><p>«ah». اللسان فيها واطي، واللسان الواطي معناه F1 عالي (حوالي 730 قصاد 270 Hz).</p></div></details>
+      <details class="rv"><summary>1 ثانية عند 16 kHz، و25 ms frame و10 ms hop. كام frame؟</summary><div class="ans"><p>الـ frame = 400 sample، والـ hop = 160. يبقى <span class="m">1 + ⌊(16000 − 400) / 160⌋ = 1 + 97 = 98</span> frame. (القانون ده هيتشرح في Lecture 3.)</p></div></details>
+      <div class="note"><b>Assignment 2</b>على تسجيلك من Assignment 1: ارسمه وعلّم الـ voiced والـ unvoiced. قيس F1 و F2 لـ 2 أو 3 vowels في Praat. علّم spectrogram بإيدك. وبعدين بوّظه: <span class="ltr">16k → 8k → 4k</span> و<span class="ltr">16 → 8 → 4 bit</span>، واحسب الـ WER لكل نسخة. السؤال: البوظان بيبقى مسموع إمتى، والـ ASR بيقع إمتى؟ وهل النقطتين دول واحد؟</div>
+      <div class="endbar"><span class="small">الجاي في Lecture 3: الـ spectrogram ده بيتحسب إزاي؟ DFT، و windowing، و mel، و MFCC.</span><div class="row"><a class="btn ghost" href="#s1" style="text-decoration:none">→ Lecture 1</a><button class="btn ghost donebtn" data-ch="s2"></button><a class="btn" href="#s3" style="text-decoration:none">Lecture 3 ←</a></div></div>
+    </section>
+  </div>
+</article>

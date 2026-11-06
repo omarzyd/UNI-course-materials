@@ -1,0 +1,76 @@
+<section class="scene" id="c2-x1" data-t="Sheet 2 محلول">
+      <div class="sh"><span class="n">0</span><h3><span class="stag hw">Sheet 2</span> كل المسائل محلولة، بالحل النموذجي بتاع الدكتور</h3></div>
+      <p class="lead">مفيش امتحانات سابقة للـ Circuits في الفولدر. فأقرب حاجة لشكل الامتحان هي الـ <b>Sheet 2</b> والـ <b>model answer</b> بتاعها. حاول كل مسألة الأول، وبعدين افتح الحل. الأرقام هنا هي أرقام الحل النموذجي.</p>
+      <div class="grid2">
+        <div class="card"><b>١. اتجاه المصادر</b><span class="small">قبل أي حاجة، شوف التيار هيمشي منين لفين، <b>حتى لو المصدر سالب</b>. ولو عكس السهم، يبقى open.</span></div>
+        <div class="card"><b>٢. diodes جنب بعض بـ knees مختلفة</b><span class="small">اللي الـ knee بتاعه أقل بيفتح الأول ويمسك الـ voltage. والتاني بيفضل off.</span></div>
+        <div class="card"><b>٣. diodes ضهرهم في ضهر بعض</b><span class="small">واحد منهم دايماً reverse، فالفرع كله open، والتيار صفر.</span></div>
+        <div class="card"><b>٤. نفس الـ voltage على الطرفين</b><span class="small">مفيش فرق جهد، يعني مفيش تيار. والـ diode مش هيفتح.</span></div>
+      </div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q1</span><b>نفس Example 1 في المحاضرة</b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q1.webp" alt="sheet 2 problem 1 circuit" loading="lazy"></figure>
+        <p class="small">ده Example 1 بالظبط. جرّبه في مشهد «Example 1 و2»: <span class="m">10 mA</span> (ideal)، و<span class="m">9.3 mA</span> (practical)، و<span class="m">9.21 mA</span> و<span class="m">V<sub>F</sub> = 0.792 V</span> (complete).</p></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q2</span><b>احسب I (approximate model)</b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q2.webp" alt="sheet 2 problem 2 circuits a b c" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>(a)</b> بص على الـ battery: الـ + تحت. فالتيار بيلف عكس سهم الـ diode، يعني reverse، و<span class="m">I = 0 mA</span>.</span></li>
+          <li><span><b>(b)</b> KVL: <span class="m">V<sub>20Ω</sub> = 20 − 0.7 = 19.3 V</span>، يعني <span class="m">I(20Ω) = 19.3 / 20 = 0.965 A</span>. وبنفس الطريقة <span class="m">V<sub>10Ω</sub> = 19.3 V</span>، يعني <span class="m">I(10Ω) = 1.93 A</span>. والمجموع <span class="m">I = 0.965 + 1.93 = 2.895 A</span>.</span></li>
+          <li><span><b>(c)</b> الفرع اللي في النص فيه diodes ضهرهم في ضهر بعض، فهو open. يعني <span class="m">I = 10 V / 10 Ω = 1 A</span>.</span></li>
+        </ol></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q3</span><b>احسب <span class="m">V<sub>o</sub></span> و <span class="m">I<sub>D</sub></span></b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q3.webp" alt="sheet 2 problem 3 circuits" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>(a)</b> الـ ground (0 V) أعلى من −5 V، فالتيار من الـ ground لـ −5 V، في اتجاه السهم، يعني forward. KVL: <span class="m">−5 + 0.7 − V<sub>o</sub> = 0</span>، فـ <span class="m">V<sub>o</sub> = −4.3 V</span>. و<span class="m">I<sub>D</sub> = |V<sub>o</sub>| / R = 4.3 / 2.2k = 1.955 mA</span>.</span></li>
+          <li><span><b>(b)</b> من +8 لـ −6، forward. <span class="m">I<sub>D</sub> = (8 + 6 − 0.7) / (1.2k + 4.7k) = 13.3 / 5.9k = 2.25 mA</span>. و<span class="m">V<sub>o</sub> = 8 − 2.25 mA × 1.2k = 5.3 V</span>.</span></li>
+        </ol><p class="small">الفكرة: المصدر السالب بيكبّر فرق الجهد. لاحظ الـ <span class="m">8 + 6</span>.</p></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q4</span><b>احسب <span class="m">V<sub>o</sub></span></b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q4.webp" alt="sheet 2 problem 4 circuits" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>(a)</b> Si وGe ورا بعض: <span class="m">0.7 + 0.3 = 1 V</span>. وvoltage divider: <span class="m">V<sub>o</sub> = 10k × (12 − 0.7 − 0.3) / (2k + 10k) = 9.17 V</span>.</span></li>
+          <li><span><b>(b)</b> الطرفين على +10 V، يعني مفيش فرق جهد ومفيش تيار. فـ <span class="m">V<sub>o</sub> = 10 V</span> (القاعدة ٤).</span></li>
+        </ol></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q5</span><b>احسب <span class="m">V<sub>o1</sub></span> و <span class="m">V<sub>o2</sub></span></b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q5.webp" alt="sheet 2 problem 5 circuits" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>(a)</b> الـ Si forward، فـ <span class="m">V<sub>o1</sub> = 12 − 0.7 = 11.3 V</span>. والـ GaAs للـ ground forward، فبيمسك <span class="m">V<sub>o2</sub> = 1.2 V</span>.</span></li>
+          <li><span><b>(b)</b> Ge وSi ضهرهم في ضهر بعض، فالفرع open. يعني <span class="m">V<sub>o1</sub> = V<sub>o2</sub> = 0 V</span> (القاعدة ٣).</span></li>
+        </ol></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q6</span><b>احسب <span class="m">V<sub>o</sub></span> و <span class="m">I<sub>D</sub></span></b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q6.webp" alt="sheet 2 problem 6 circuits" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>(a)</b> الاتنين forward، بس الـ Si (0.7) بيفتح قبل الـ GaAs (1.2) ويمسك 0.7 (القاعدة ٢). يعني <span class="m">I<sub>D</sub> = I<sub>R</sub> = (12 − 0.7) / 4.7k = 2.4 mA</span>، و<span class="m">V<sub>o</sub> = 11.3 V</span>.</span></li>
+          <li><span><b>(b)</b> الـ Ge مقلوب، والـ Si اليمين بس forward. <span class="m">I<sub>D</sub> = (20 + 4 − 0.7) / 2.2k = 10.59 mA</span>، و<span class="m">V<sub>o</sub> = 20 − 0.7 = 19.3 V</span>.</span></li>
+        </ol><p class="small">خد بالك: الرسمة مكتوب فيها «4 V»، بس الحل النموذجي حسبها <b>−4 V</b> (الـ +4 في البسط). ولو كانت +4 فعلاً: <span class="m">(20 − 0.7 − 4) / 2.2k = 6.95 mA</span>. اسأل في الـ lab لو مش واضحة.</p></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q7</span><b>احسب <span class="m">V<sub>o</sub></span> و I</b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q7.webp" alt="sheet 2 problem 7 circuits" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>(a)</b> 1 V بس: الـ Si بيفتح ويمسك 0.7، والـ GaAs محتاج 1.2 فبيفضل off. <span class="m">I = (1 − 0.7) / 1k = 0.3 mA</span>، و<span class="m">V<sub>o</sub> = 0.3 V</span>.</span></li>
+          <li><span><b>(b)</b> Si فوق، وبعده اتنين Si parallel (يعني 0.7 واحدة): <span class="m">I = (16 − 0.7 − 0.7 + 4) / 4.7k = 18.6 / 4.7k = 3.96 mA</span>، و<span class="m">V<sub>o</sub> = 16 − 0.7 − 0.7 = 14.6 V</span>.</span></li>
+        </ol></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q8</span><b>احسب <span class="m">V<sub>o1</sub></span> و <span class="m">V<sub>o2</sub></span> و I</b></div>
+        <figure class="fig figcrop"><img src="img/sh2_q8.webp" alt="sheet 2 problem 8 circuit" loading="lazy"></figure>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span>الاتنين forward: <span class="m">V<sub>o1</sub> = 0.7 V</span>، و<span class="m">V<sub>o2</sub> = 0.7 V</span>.</span></li>
+          <li><span><span class="m">I<sub>1kΩ</sub> = (20 − 0.7) / 1k = 19.3 mA</span>.</span></li>
+          <li><span>الـ 0.47 kΩ طرفيه الاتنين على 0.7 V، فمفيش تيار: <span class="m">I<sub>0.47kΩ</sub> = 0</span>.</span></li>
+          <li><span>KCL: <span class="m">I = 19.3 − 0 = 19.3 mA</span>.</span></li>
+        </ol></div></details></div>
+
+      <div class="exq"><div class="exh"><span class="stag hw">Q9 و Q10</span><b>Negative logic gates (جديدة، مش في المحاضرة)</b></div>
+        <div class="grid2"><figure class="fig"><img src="img/sh2_q9.webp" alt="negative logic OR gate" loading="lazy"><figcaption>Q9: negative logic OR</figcaption></figure><figure class="fig"><img src="img/sh2_q10.webp" alt="negative logic AND gate" loading="lazy"><figcaption>Q10: negative logic AND</figcaption></figure></div>
+        <p class="small">في الـ <b>negative logic</b>: الـ level 1 هو الـ voltage <b>الأوطى</b> (−5 V)، والـ level 0 هو الأعلى (0 V). والـ diodes مقلوبة عن المحاضرة.</p>
+        <details class="rv"><summary>الحل</summary><div class="ans"><ol class="steps">
+          <li><span><b>Q9:</b> الـ diode اللي عليه −5 V عند الـ cathode هو اللي ON، والتاني OFF. يعني <span class="m">V<sub>o</sub> = −5 + 0.7 = −4.3 V</span>، وده قريب من −5، يعني «1»: input واحد بس «1» خلّى الـ output «1»، وده OR.</span></li>
+          <li><span><b>Q10:</b> الـ 0 V «أكتر موجب» من الـ −5 V، فافترض الـ diode التحتاني ON والفوقاني OFF. يعني <span class="m">V<sub>o</sub> = 0 − 0.7 = −0.7 V</span>، وده «0». والنتيجة بتأكد الافتراض. لازم الاتنين يبقوا «1» عشان الـ output يبقى «1»، وده AND.</span></li>
+        </ol></div></details>
+      </div>
+      <p class="bridge">نلخّص Lecture 2.</p>
+    </section>

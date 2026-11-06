@@ -1,0 +1,198 @@
+<article class="chapter" id="ch-s1" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">SPEECH · LECTURE 1 · WHAT IS A SPEECH SYSTEM?</span>
+      <h2>الـ machine بتسمع إيه بالظبط؟</h2>
+      <p>هنبدأ من الصوت زي ما بيوصل للـ machine، ونشوف ليه تحويله لـ text صعب. وبعدين نتعلم نقيس الغلط بالـ WER، ونعرف إمتى الرقم ده بيضحك علينا.</p>
+    </div>
+
+    <section class="scene" id="s1-1" data-t="16,000 رقم في الثانية">
+      <div class="sh"><span class="n">1</span><h3>16,000 رقم في الثانية</h3></div>
+      <p class="lead">لما بتكلّم الموبايل، هو مش بيستلم كلام. بيستلم أرقام: قيمة الضغط بتاع الهوا، متقاسة 16,000 مرة كل ثانية. والمطلوب منه يطلّع من كل ده حوالي 12 لـ 15 حرف بس.</p>
+      <div class="three">
+        <div class="stat"><span class="small">اللي داخل</span><span class="v">16,000 <small>samples/sec</small></span><span class="xs small">أرقام متصلة، عند 16 kHz</span></div>
+        <div class="stat"><span class="small">اللي المفروض يطلع</span><span class="v">12–15 <small>chars/sec</small></span><span class="xs small">حروف text منفصلة</span></div>
+        <div class="stat"><span class="small">الفرق</span><span class="v">~1,000 : 1</span><span class="xs small">ألف رقم صوت قصاد كل حرف</span></div>
+      </div>
+      <div class="panel">
+        <h4>الجملة <span class="ltr">"the cat sat"</span> زي ما الـ machine شايفاها</h4>
+        <div id="s1wave"></div>
+        <div class="ctl"><label for="s1zoom">Zoom</label><input type="range" id="s1zoom" min="0" max="100" value="0"><output id="s1zoomO"></output></div>
+        <div class="row"><button class="btn ghost" id="s1words" aria-pressed="false">ورّيني الكلمات فين</button><span class="hint" id="s1zmsg"></span></div>
+      </div>
+      <p>اعمل zoom لآخره: كل نقطة هي <b>sample</b> واحدة، يعني رقم واحد. وبعدين دوس «ورّيني الكلمات فين». هتلاقي إن كل لحظات السكوت جوه الكلمات نفسها (قبل صوت الـ <span class="ltr">t</span> والـ <span class="ltr">k</span>)، مش بين كلمة والتانية.</p>
+      <div class="note warn"><b>الـ core challenge</b>مفيش حاجة في الموجة بتقول الكلمة بتخلص فين واللي بعدها بتبدأ فين. والصوت كمان مخلوط بالـ noise، وصدى الأوضة، وصوت الشخص نفسه.</div>
+      <p class="bridge">طب الـ machine مطلوب منها تعمل إيه بالأرقام دي؟ فيه تلات مهام أساسية.</p>
+    </section>
+
+    <section class="scene" id="s1-2" data-t="تلات مهام">
+      <div class="sh"><span class="n">2</span><h3>تلات مهام في الـ speech AI</h3></div>
+      <div class="three" id="s1tasks">
+        <div class="card"><span class="tag tS" style="align-self:flex-start">ASR</span><h4>Automatic Speech Recognition</h4><div class="pipe"><span>Audio</span><i>→</i><span>Text</span></div><p class="small">بتحوّل الصوت لـ text. زي الـ voice typing والـ subtitles. ده موضوع الكورس الأساسي.</p></div>
+        <div class="card"><span class="tag tR" style="align-self:flex-start">TTS</span><h4>Text-to-Speech</h4><div class="pipe"><span>Text</span><i>→</i><span>Audio</span></div><p class="small">العكس: بتاخد text وتطلّع صوت شبه البني آدم. زي قارئ الشاشة والـ GPS.</p></div>
+        <div class="card"><span class="tag tG" style="align-self:flex-start">Speech LM</span><h4>Speech Language Models</h4><div class="pipe"><span>Audio</span><i>→</i><span>Audio</span></div><p class="small">بتسمع صوت وترد بصوت على طول، ومحافظة على الـ tone والـ emotion.</p></div>
+      </div>
+      <p class="bridge">هنركّز على الـ ASR. طب ليه تحويل الصوت لـ text صعب كده؟</p>
+    </section>
+
+    <section class="scene" id="s1-3" data-t="ليه صعب؟">
+      <div class="sh"><span class="n">3</span><h3>أربع أسباب تخلّي الـ ASR صعب</h3></div>
+      <div class="two">
+        <div class="panel">
+          <h4>١. نفس الكلمة عمرها ما بتبقى نفس الـ signal</h4>
+          <p class="small">دي كلمة <span class="ltr">"cat"</span>. غيّر اللي بيتكلم أو الظروف، وشوف الموجة بتتغير قد إيه، مع إن الكلمة هي هي.</p>
+          <div class="seg" id="s1var" role="group" aria-label="غيّر الظروف">
+            <button type="button" data-v="base" aria-pressed="true">الأصل</button>
+            <button type="button" data-v="high" aria-pressed="false">صوت أرفع</button>
+            <button type="button" data-v="fast" aria-pressed="false">أسرع</button>
+            <button type="button" data-v="quiet" aria-pressed="false">mic بعيد</button>
+            <button type="button" data-v="noise" aria-pressed="false">noise</button>
+            <button type="button" data-v="echo" aria-pressed="false">صدى أوضة</button>
+          </div>
+          <div id="s1varPlot"></div>
+          <p class="small" id="s1varMsg"></p>
+        </div>
+        <div class="panel">
+          <h4>٢. مفيش حدود نلاقيها</h4>
+          <p class="small">شفناها في المشهد الأول: الكلمات لازقة في بعض. اللي بيسمع لغته بيحس بفواصل مش موجودة في الـ signal، عشان هو أصلاً عارف اللغة.</p>
+          <h4 style="margin-top:10px">٣. الـ input والـ output بسرعات مختلفة</h4>
+          <p class="small">الـ model لازم يقرر أنهي حتة صوت طلّعت أنهي حرف، ومحدش بيدّيله الـ alignment ده.</p>
+          <div id="s1align" dir="ltr"></div>
+          <div class="ctl"><label for="s1T">عدد الـ frames</label><input type="range" id="s1T" min="4" max="100" value="12"><output id="s1TO"></output></div>
+          <div class="row"><button class="btn ghost" id="s1reAlign">alignment تاني</button><span class="hint" id="s1alignMsg"></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>٤. الغموض مبيتحلّش غير بالـ context</h4>
+        <p class="small">نفس الصوت بالظبط ممكن يتكتب بطريقتين، والكلام اللي حواليه هو اللي بيحدد. اختار الجملة اللي قبله:</p>
+        <div class="seg" id="s1ctx" role="group" aria-label="الـ context">
+          <button type="button" data-c="0" aria-pressed="true">"It's so hot, let's get some …"</button>
+          <button type="button" data-c="1" aria-pressed="false">"When I see a spider, …"</button>
+        </div>
+        <div class="grid2" id="s1amb" style="margin-top:8px"></div>
+        <p class="small">ونفس الحكاية في <span class="ltr">"recognize speech"</span> و<span class="ltr">"wreck a nice beach"</span>. عشان كده حتى لو الـ acoustic model مظبوط 100%، لسه محتاج <b>language model</b>.</p>
+      </div>
+      <p class="bridge">طب ليه ما نعاملهاش زي أي classification problem ونخلص؟</p>
+    </section>
+
+    <section class="scene" id="s1-4" data-t="Classification ولا transduction؟">
+      <div class="sh"><span class="n">4</span><h3>ليه مش classification وخلاص؟</h3></div>
+      <div class="panel" id="s1clsViz" style="max-width:640px"></div>
+      <div>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th></th><th>Classification</th><th>Sequence transduction</th></tr>
+          <tr><td>الـ input</td><td>حاجة واحدة، label واحد</td><td>sequence طولها أي حاجة</td></tr>
+          <tr><td>الـ output</td><td>من مجموعة classes معروفة. تقدر تعدّها.</td><td>sequence تانية طولها مختلف ومش معروف. أي جملة اللغة تسمح بيها، فمستحيل تعدّها.</td></tr>
+          <tr><td>السؤال</td><td><mark>ده أنهي واحد فيهم؟</mark></td><td><mark>أنهي sequence تفسّر الـ signal دي؟</mark></td></tr>
+          <tr><td>النجاح</td><td>تطابق الـ label</td><td>transcript قريب من اللي اتقال، و«قريب» دي محتاجة تعريف</td></tr>
+        </table></div>
+      </div>
+      <p class="bridge">«قريب» يعني إيه بالأرقام؟ هنا ييجي الـ WER.</p>
+    </section>
+
+    <section class="scene" id="s1-5" data-t="Word Error Rate">
+      <div class="sh"><span class="n">5</span><h3>الـ WER: نعدّ الغلطات</h3></div>
+      <p class="lead">بنحط الـ <b>hypothesis</b> (اللي الـ system كتبه) جنب الـ <b>reference</b> (اللي اتقال فعلاً)، ونعمل alignment بأقل عدد تعديلات (edit distance). وبعدين نعدّ تلات أنواع غلط، ونقسم على طول الـ reference.</p>
+      <div class="mb">WER = (S + D + I) / N</div>
+      <div class="grid2">
+        <div class="card"><span class="tag tA" style="align-self:flex-start">S · substitution</span><span class="small">كلمة اتكتبت غلط مكان كلمة.</span></div>
+        <div class="card"><span class="tag tN" style="align-self:flex-start">D · deletion</span><span class="small">كلمة اتقالت والـ system نسيها.</span></div>
+        <div class="card"><span class="tag tG" style="align-self:flex-start">I · insertion</span><span class="small">كلمة الـ system زوّدها من عنده.</span></div>
+        <div class="card"><span class="tag tE" style="align-self:flex-start">N</span><span class="small">عدد كلمات الـ <b>reference</b>، مش الـ hypothesis.</span></div>
+      </div>
+      <h4>مثال المحاضرة</h4>
+      <div id="s1ex"></div>
+      <ol class="steps">
+        <li><span><span class="ltr">approved → improved</span>: كلمة مكان كلمة، يبقى <b class="cA">S</b>.</span></li>
+        <li><span><span class="ltr">new</span> اتقالت ومش موجودة، يبقى <b class="cN">D</b>.</span></li>
+        <li><span><span class="ltr">today → to</span>: يبقى <b class="cA">S</b>. وبعدين <span class="ltr">date</span> زيادة، يبقى <b class="cG">I</b>.</span></li>
+        <li><span>الـ reference فيها 7 كلمات، يبقى <span class="m">WER = (2 + 1 + 1) / 7 = 4/7 ≈ 57%</span></span></li>
+      </ol>
+      <div class="note"><b>خد بالك</b>الـ WER ملوش سقف. لو الـ system زوّد كلام كتير (insertions)، الرقم ممكن يعدّي 100%، وده مش bug.</div>
+      <p class="bridge">جرّبها بنفسك، وشوف الـ table اللي بيتحسب بيه الـ alignment.</p>
+    </section>
+
+    <section class="scene" id="s1-6" data-t="WER calculator">
+      <div class="sh"><span class="n">6</span><h3>احسبها بإيدك: WER calculator</h3></div>
+      <div class="seg" id="s1pre" role="group" aria-label="أمثلة جاهزة">
+        <button type="button" data-p="0" aria-pressed="true">مثال المحاضرة</button>
+        <button type="button" data-p="1" aria-pressed="false">WER فوق 100%</button>
+        <button type="button" data-p="2" aria-pressed="false">عربي + normalization</button>
+        <button type="button" data-p="3" aria-pressed="false">CER ضد WER</button>
+        <button type="button" data-p="4" aria-pressed="false">مثال الكتاب (J&amp;M 16.6)</button>
+      </div>
+      <div class="grid2">
+        <label class="panel" style="display:flex;flex-direction:column;gap:4px"><span class="small">Reference (اللي اتقال)</span><input id="s1ref" dir="auto" class="txt"></label>
+        <label class="panel" style="display:flex;flex-direction:column;gap:4px"><span class="small">Hypothesis (اللي الـ system كتبه)</span><input id="s1hyp" dir="auto" class="txt"></label>
+      </div>
+      <label class="row small"><input type="checkbox" id="s1norm"> <span>اعمل normalization الأول (حروف صغيرة، من غير علامات، وفي العربي: أ إ آ ← ا، ة ← ه، ى ← ي، ومن غير تشكيل)</span></label>
+      <div id="s1out"></div>
+      <details class="rv"><summary>ورّيني الـ edit-distance table</summary><div class="ans"><p class="small">كل خانة = أقل عدد تعديلات عشان أول <span class="m">i</span> كلمات من الـ reference يبقوا أول <span class="m">j</span> كلمات من الـ hypothesis. الـ path الملوّن هو الـ alignment.</p><div class="tblwrap" id="s1dp"></div></div></details>
+      <p class="bridge">الرقم ده مفيد، بس فيه حاجات كتير مش بيقولها.</p>
+    </section>
+
+    <section class="scene" id="s1-7" data-t="الـ WER بيخبّي إيه؟">
+      <div class="sh"><span class="n">7</span><h3>الرقم ده بيخبّي إيه؟</h3></div>
+      <div class="two">
+        <div class="panel">
+          <h4>١. كل غلطة ليها نفس التمن</h4>
+          <p class="small">الـ reference: <span class="ltr">"take 15 mg of the drug daily"</span></p>
+          <div class="grid2">
+            <div class="card"><span class="ltr">take <b class="cN">50</b> mg of the drug daily</span><span class="small">1 substitution · <b>WER 16.7%</b></span><span class="pill off" style="align-self:flex-start">جرعة غلط، خطر</span></div>
+            <div class="card"><span class="ltr">take 15 mg of drug daily</span><span class="small">1 deletion · <b>WER 16.7%</b></span><span class="pill on" style="align-self:flex-start">مفيش مشكلة</span></div>
+          </div>
+          <p class="small">نفس الرقم بالظبط. بس الـ application بتاعك مش شايفهم زي بعض.</p>
+        </div>
+        <div class="panel">
+          <h4>٢. الـ normalization هو اللي بيحدد الرقم</h4>
+          <p class="small">في العربي: الهمزات، وأشكال الألف، والتاء المربوطة، والتشكيل. جرّب المثال العربي في الـ calculator:</p>
+          <div class="grid2">
+            <div class="card"><b>من غير normalization</b><span class="stat" style="padding:0;border:0;background:none"><span class="v cN">100%</span></span></div>
+            <div class="card"><b>بعد الـ normalization</b><span class="stat" style="padding:0;border:0;background:none"><span class="v cR">0%</span></span></div>
+          </div>
+          <p class="small">نفس الـ predictions. معملين مختلفين ممكن يقولوا رقمين مختلفين، بس عشان كل واحد عمل normalization بطريقة.</p>
+        </div>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <h4>٣. الـ CER أعدل في لغات زي العربي</h4>
+          <p class="small">العربي <b>morphologically rich</b>: الكلمة الواحدة فيها prefixes و suffixes كتير. حرف واحد غلط يبوّظ الكلمة كلها في الـ WER.</p>
+          <div class="tblwrap"><table class="cmp">
+            <tr><th>Reference</th><th>Hypothesis</th><th>WER</th><th>CER</th></tr>
+            <tr><td>وسيكتبونها</td><td>وسيكتبوها</td><td class="cN"><b>100%</b></td><td class="cR"><b>10%</b></td></tr>
+          </table></div>
+          <p class="small">حرف واحد ناقص من 10 حروف. الـ CER (character error rate) بيقول الحقيقة، وهو الـ standard في شغل العربي.</p>
+        </div>
+        <div class="panel">
+          <h4>٤. المتوسط بيخبّي الـ tail</h4>
+          <p class="small">corpus WER حوالي 7% ممكن يكون 3% للرجالة اللي بيقروا أخبار، و30% لواحد بيتكلم بلهجة. حرّك نسبة أصحاب اللهجة في الـ test set:</p>
+          <div id="s1tail"></div>
+          <div class="ctl"><label for="s1dia">نسبة اللهجة</label><input type="range" id="s1dia" min="0" max="40" value="5"><output id="s1diaO"></output></div>
+        </div>
+      </div>
+      <div class="note"><b>الـ leaderboard</b>رقم الـ leaderboard بيوصف corpus معيّن، مش لغة ومش المستخدمين بتوعك. اسأل دايماً: إيه اللي اتقال؟ مين اللي قاله؟ والـ model شاف الـ data دي قبل كده ولا لأ؟ وفي الـ project لازم تطلّع النتايج لكل speaker ولكل condition.</div>
+      <p class="bridge">نلمّ الـ lecture كلها، ونختبر نفسنا.</p>
+    </section>
+
+    <section class="scene" id="s1-8" data-t="لخّص واختبر نفسك">
+      <div class="sh"><span class="n">8</span><h3>الخلاصة، واختبر نفسك</h3></div>
+      <div class="cheat">
+        <div class="card"><b>الـ ASR</b><span class="small">signal طويلة ومتصلة ومتغيّرة جداً، تتحوّل لـ sequence قصيرة. من غير alignment ومن غير حدود.</span></div>
+        <div class="card"><b>Transduction</b><span class="small">input و output طولهم مختلف ومش معروف. مش classification.</span></div>
+        <div class="card"><b class="ltr">WER = (S+D+I)/N</b><span class="small">edit distance مقسوم على طول الـ reference. ملوش سقف.</span></div>
+        <div class="card"><b>الـ normalization</b><span class="small">بيغيّر الرقم. لازم تقول عملته إزاي.</span></div>
+        <div class="card"><b>CER</b><span class="small">أعدل للعربي واللغات الـ morphologically rich.</span></div>
+        <div class="card"><b>المتوسط</b><span class="small">بيخبّي الـ tail. طلّع النتايج لكل speaker.</span></div>
+      </div>
+      <h4>اختار الإجابة</h4>
+      <div class="qz" id="s1quiz"></div><p class="score" id="s1quizS"></p>
+      <h4>احسب</h4>
+      <details class="rv"><summary>Reference فيها 5 كلمات، والـ system عمل 1 substitution و2 insertions. الـ WER كام؟</summary><div class="ans"><p><span class="m">(1 + 0 + 2) / 5 = 3/5 = 60%</span>. القسمة على 5 عشان الـ reference هي اللي بتتقسم عليها.</p></div></details>
+      <details class="rv"><summary>Reference كلمتين، والـ hypothesis فيها الكلمتين صح و6 كلمات زيادة. الـ WER كام؟</summary><div class="ans"><p><span class="m">(0 + 0 + 6) / 2 = 300%</span>. ده اللي يخلّي الـ WER ملوش سقف.</p></div></details>
+      <details class="rv"><summary>ليه الـ WER ممكن يظلم system عربي؟</summary><div class="ans"><p>عشان الكلمة الواحدة في العربي فيها affixes كتير، فحرف واحد غلط بيحسب الكلمة كلها substitution. والـ normalization (همزات، ة، ى، تشكيل) ممكن يغيّر الرقم من غير ما الـ system يتغيّر. الحل: CER، و normalization واضح ومكتوب.</p></div></details>
+      <div class="note"><b>واجب الأسبوع ده</b>اختار أعلى system في الـ Open ASR Leaderboard واكتب رقمه طالع من أنهي corpus. سجّل 30 ثانية بالعربي زي ما بتكلّم صاحبك، وعدّيهم على أي ASR مجاني، واحسب الـ WER بإيدك. وهات غلطة واحدة البني آدم ما كانش هيغلطها، وجملة تشرح ليه حصلت.</div>
+      <div class="endbar"><span class="small">الجاي في Lecture 2: الـ 16,000 رقم دول جايين منين؟ موجة، و sampling، و quantization، و formants.</span><div class="row"><button class="btn ghost donebtn" data-ch="s1"></button><a class="btn" href="#s2" style="text-decoration:none">Lecture 2 ←</a></div></div>
+    </section>
+  </div>
+</article>

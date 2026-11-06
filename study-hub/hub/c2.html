@@ -1,0 +1,322 @@
+<article class="chapter" id="ch-c2" hidden>
+  <aside class="toc" aria-label="مشاهد الـ chapter"></aside>
+  <div class="body">
+    <div class="chead">
+      <span class="k">CIRCUITS · LECTURE 2 · SEMICONDUCTORS &amp; DIODES</span>
+      <h2>إزاي حتة silicon تعدّي التيار في اتجاه واحد بس؟</h2>
+      <p>هنبدأ من جوه الذرة: الـ energy bands، وبعدين نضيف شوائب (doping) نعمل بيها n-type وp-type. نلزقهم في بعض يطلع الـ diode. وبعدين نتعلم نحلّل أي دايرة فيها diodes، لحد ما نبني بيهم logic gates.</p>
+    </div>
+
+    <section class="scene" id="c2-1" data-t="الـ energy bands">
+      <div class="sh"><span class="n">1</span><h3>الـ energy bands: ليه في مواد بتوصّل ومواد لأ؟</h3></div>
+      <div class="grid2">
+        <div class="card"><b class="cS">Valence band</b><span class="small">فيها الـ valence electrons. ممكن تبقى مليانة كلها أو حتة منها، بس عمرها ما تبقى فاضية. والـ electrons اللي فيها ما بتقدرش تاخد طاقة كفاية من electric field برّاني عشان تشارك في التيار.</span></div>
+        <div class="card"><b class="cR">Conduction band</b><span class="small">فيها الـ electrons اللي بتوصّل. ممكن تبقى فاضية أو فيها شوية electrons. والـ electrons اللي فيها هي اللي بتعمل التيار.</span></div>
+        <div class="card"><b class="cA">Energy band gap <span class="m">E<sub>g</sub></span></b><span class="small">أقل طاقة محتاجها الـ electron عشان ينط من الـ valence للـ conduction. يعني المسافة بين قاع الـ conduction band وسقف الـ valence band.</span></div>
+      </div>
+      <div class="mb">E<sub>g</sub> = hν = hc / λ</div>
+      <div class="two">
+        <div id="c2bands"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="ctl"><label for="c2Eg">الـ gap <span class="m">E<sub>g</sub></span></label><input type="range" id="c2Eg" min="0" max="6" step="0.05" value="1.1"><output id="c2EgO"></output></div>
+          <div class="readout" id="c2EgR"></div>
+          <p class="small" id="c2EgMsg"></p>
+          <p class="src">المحاضرة بتحط الحد عند 3 eV. وقيم الـ Si (≈ 1.1 eV) والـ Ge (≈ 0.67 eV) والـ GaAs (≈ 1.43 eV) قيم معروفة، مش من السلايدز. وللحساب: <span class="m">λ(nm) ≈ 1240 / E<sub>g</sub>(eV)</span>.</p>
+        </div>
+      </div>
+      <p class="bridge">الـ semiconductor في النص. نبص جوه أشهر واحد فيهم: الـ silicon.</p>
+    </section>
+
+    <section class="scene" id="c2-2" data-t="الـ silicon من جوه">
+      <div class="sh"><span class="n">2</span><h3>الـ silicon من جوه (Z = 14)</h3></div>
+      <div class="two">
+        <div class="panel"><h4>Bohr model (الموديل القديم)</h4><div id="c2bohr"></div><p class="small">semi-classical، وكل shell بتشيل <span class="m">2n²</span>: يعني 2 وبعدين 8، والباقي 4 في الـ shell التالتة.</p></div>
+        <div class="panel"><h4>Quantum model (Schrödinger)</h4><div id="c2orb"></div><p class="small">اسمه quantum wave mechanics. آخر subshell، الـ <span class="m">3p</span>، فيها 2 بس، فالـ shell التالتة كلها فيها 4، ومحتاجة <b>4 كمان</b> عشان توصل 8 وتستقر.</p></div>
+      </div>
+      <div class="note"><b>في المثال ده</b><b>Valence band</b> = أعلى band مليانة على الآخر (الـ <span class="m">3s</span>). و<b>Conduction band</b> = أوطى band مش مليانة على الآخر (الـ <span class="m">3p</span>).</div>
+      <p class="bridge">الـ silicon عنده 4 ومحتاج 4. هيجيبهم منين؟ من الجيران.</p>
+    </section>
+
+    <section class="scene" id="c2-3" data-t="Intrinsic وdoping">
+      <div class="sh"><span class="n">3</span><h3>من silicon نضيف لـ silicon بشوائب (doping)</h3></div>
+      <p class="lead"><b>Intrinsic semiconductor</b> = مادة ما اتضافلهاش أي شوائب. كل ذرة silicon بتشارك electrons مع 4 جيران في <b>covalent bonds</b>، فكل ذرة بتبقى كأن حواليها 8 electrons. و<b>extrinsic</b> = نفس البلورة بس عملنالها <b>doping</b> بشوائب. اختار:</p>
+      <div class="seg" id="c2dop" role="group" aria-label="نوع البلورة">
+        <button type="button" data-d="pure" aria-pressed="true">Si نضيف (intrinsic)</button>
+        <button type="button" data-d="n" aria-pressed="false">+ فوسفور P (n-type)</button>
+        <button type="button" data-d="p" aria-pressed="false">+ بورون B (p-type)</button>
+      </div>
+      <div class="two">
+        <div id="c2lat"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div id="c2lev"></div>
+          <button class="btn ghost" id="c2ion" style="align-self:flex-start">اعمل ionization (حرارة الأوضة)</button>
+          <p class="small" id="c2dopMsg"></p>
+        </div>
+      </div>
+      <div class="tblwrap"><table class="cmp">
+        <tr><th></th><th>N-type (Donors)</th><th>P-type (Acceptors)</th></tr>
+        <tr><td>الشوائب</td><td><b>Pentavalent</b>: فيها 5 valence electrons، زي arsenic (As) وphosphorus (P)</td><td><b>Trivalent</b>: فيها 3، زي boron (B) وaluminium (Al)</td></tr>
+        <tr><td>اللي بيحصل</td><td>4 بيعملوا bonds مع الـ Si، والخامس بيبقى <b class="cS">free electron</b></td><td>3 bonds بس، والرابعة ناقصة electron، فيظهر <b class="cN">hole</b></td></tr>
+        <tr><td>اسم الذرة</td><td><b>donor</b>، عشان بتدّي electron</td><td><b>acceptor</b>، عشان بتاخد electron</td></tr>
+        <tr><td>المستوى الجديد</td><td><span class="m">E<sub>D</sub></span> تحت الـ conduction band على طول</td><td><span class="m">E<sub>A</sub></span> فوق الـ valence band على طول</td></tr>
+      </table></div>
+      <p class="bridge">طب لو لزقنا حتة n في حتة p؟</p>
+    </section>
+
+    <section class="scene" id="c2-4" data-t="الـ p-n junction">
+      <div class="sh"><span class="n">4</span><h3>الـ p-n junction</h3></div>
+      <p class="lead">بنعمل doping لطرف من بلورة silicon (أو germanium) يبقى p-type، وللطرف التاني يبقى n-type. والنتيجة <b>p-n junction</b>.</p>
+      <div class="row"><button class="btn" id="c2pn">لزّقهم ← شوف اللي بيحصل</button><button class="btn ghost" id="c2pn0">من الأول</button></div>
+      <div id="c2pnViz"></div>
+      <ol class="steps">
+        <li><span>الـ electrons الزيادة في الـ n (في الـ conduction band) بتنجذب للـ holes اللي في الـ p.</span></li>
+        <li><span>الـ electrons بتعدّي الـ junction للـ p وتملا holes (ده الـ electron flow).</span></li>
+        <li><span>النتيجة: شحنة <b class="cN">سالبة</b> في جنب الـ p عند الـ junction، وشحنة <b class="cS">موجبة</b> في جنب الـ n.</span></li>
+        <li><span>المنطقة دي فضيت من الـ carriers، واسمها <b>depletion region</b>.</span></li>
+      </ol>
+      <p class="bridge">ده الـ diode نفسه. نوصّله بـ battery ونشوف.</p>
+    </section>
+
+    <section class="scene" id="c2-5" data-t="الـ bias">
+      <div class="sh"><span class="n">5</span><h3>الـ diode وتلات حالات bias</h3></div>
+      <p class="lead">الـ <b>diode</b> عنصر بطرفين: <b>anode</b> (الـ p) و<b>cathode</b> (الـ n). السهم في الرمز بيشاور على الاتجاه اللي التيار يقدر يمشي فيه. والـ diode المثالي بيوصّل في اتجاه واحد بس. حرّك الـ voltage:</p>
+      <div class="ctl"><label for="c2VD">الـ voltage على الـ diode <span class="m">V<sub>D</sub></span></label><input type="range" id="c2VD" min="-10" max="1" step="0.05" value="0"><output id="c2VDO"></output></div>
+      <div id="c2bias"></div>
+      <div class="readout" id="c2biasR"></div>
+      <div class="tblwrap"><table class="cmp">
+        <tr><th></th><th>No bias</th><th>Reverse bias</th><th>Forward bias</th></tr>
+        <tr><td>التوصيل</td><td>مفيش voltage: <span class="m">V<sub>D</sub> = 0</span></td><td>عكس الـ p والـ n: الـ + على الـ n</td><td>زي الـ p والـ n: الـ + على الـ p</td></tr>
+        <tr><td>الـ depletion</td><td>صغيرة</td><td><b>بتوسع</b>: الـ electrons بتروح ناحية الـ + والـ holes ناحية الـ −</td><td><b>بتضيق</b>: الـ carriers بيتزقّوا ناحية الـ junction ويعدّوا</td></tr>
+        <tr><td>التيار</td><td><span class="m">I<sub>D</sub> = 0</span></td><td><span class="m">I<sub>s</sub></span> بس، minority carriers صغير جداً (<span class="m">I<sub>majority</sub> = 0</span>)</td><td><span class="m">I<sub>D</sub> = I<sub>majority</sub> − I<sub>s</sub></span>، كبير</td></tr>
+      </table></div>
+      <p class="bridge">ده بالكلام. بالأرقام، فيه معادلة بتوصف التيار.</p>
+    </section>
+
+    <section class="scene" id="c2-6" data-t="معادلة الـ diode">
+      <div class="sh"><span class="n">6</span><h3>الـ characteristic curve ومعادلة الـ diode</h3></div>
+      <div class="mb">I<sub>D</sub> = I<sub>s</sub> · (e<sup>V<sub>D</sub> / nV<sub>T</sub></sup> − 1)   ·   V<sub>T</sub> = kT / q</div>
+      <div class="grid2">
+        <div class="card"><span class="small"><span class="m">V<sub>T</sub></span> الـ thermal voltage. و<span class="m">I<sub>s</sub></span> الـ reverse saturation current. و<span class="m">V<sub>D</sub></span> الـ voltage على الـ diode.</span></div>
+        <div class="card"><span class="small"><span class="m">n</span> بين 1 و2، وبيعتمد على ظروف التشغيل والتصنيع. افترض <span class="m">n = 1</span> لو ما اتقالش غير كده.</span></div>
+        <div class="card"><span class="small"><span class="m">k = 1.38 × 10⁻²³</span> (Boltzmann)، و<span class="m">q = 1.6 × 10⁻¹⁹ C</span>، و<span class="m">T = 273 + °C</span> بالـ kelvin.</span></div>
+      </div>
+      <div class="two">
+        <div id="c2iv"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="ctl"><label for="c2T">الحرارة</label><input type="range" id="c2T" min="0" max="100" step="1" value="27"><output id="c2TO"></output></div>
+          <div class="ctl"><label for="c2n"><span class="m">n</span></label><input type="range" id="c2n" min="1" max="2" step="0.1" value="1"><output id="c2nO"></output></div>
+          <div class="ctl"><label for="c2Is"><span class="m">I<sub>s</sub></span></label><input type="range" id="c2Is" min="-15" max="-12" step="1" value="-14"><output id="c2IsO"></output></div>
+          <div class="ctl"><label for="c2Vq"><span class="m">V<sub>D</sub></span></label><input type="range" id="c2Vq" min="-1" max="0.8" step="0.01" value="0.7"><output id="c2VqO"></output></div>
+          <ol class="steps" id="c2ivSteps"></ol>
+        </div>
+      </div>
+      <p class="small">بص على الـ curve: في الـ reverse، التيار تقريباً <span class="m">−I<sub>s</sub></span>، وده <b>نادراً ما بيعدّي كام microampere</b>. وفي الـ forward، مفيش حاجة تقريباً لحد ما توصل الـ <b>knee</b>، وبعدها التيار بيطلع فجأة.</p>
+      <p class="src">الأرقام (<span class="m">I<sub>s</sub> = 10⁻¹⁴ A</span>) مثال من عندي عشان الحسبة تبقى سهلة. والقانون من المحاضرة.</p>
+      <p class="bridge">الـ knee ده بيحصل عند كام فولت؟ بيعتمد على المادة.</p>
+    </section>
+
+    <section class="scene" id="c2-7" data-t="Ge وSi وGaAs والحرارة">
+      <div class="sh"><span class="n">7</span><h3>Ge وSi وGaAs، وتأثير الحرارة</h3></div>
+      <p class="lead">الـ diode بيتحوّل من no bias لـ forward bias لما الـ electrons والـ holes ياخدوا طاقة كفاية يعدّوا الـ junction، والطاقة دي جاية من الـ voltage اللي برّه. والـ forward voltage المطلوب:</p>
+      <div class="three">
+        <div class="stat"><span class="small">Germanium (Ge)</span><span class="v">≈ 0.3 <small>V</small></span></div>
+        <div class="stat"><span class="small">Silicon (Si)</span><span class="v">≈ 0.7 <small>V</small></span></div>
+        <div class="stat"><span class="small">Gallium arsenide (GaAs)</span><span class="v">≈ 1.2 <small>V</small></span></div>
+      </div>
+      <div class="two">
+        <div id="c2mat"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <h4>الحرارة</h4>
+          <div class="ctl"><label for="c2tmp">حرارة الـ Si</label><input type="range" id="c2tmp" min="-75" max="125" step="5" value="25"><output id="c2tmpO"></output></div>
+          <div class="readout" id="c2tmpR"></div>
+          <ul class="clean small">
+            <li>الحرارة بتدّي الـ diode طاقة، فالـ <b>forward voltage بيقلّ</b>.</li>
+            <li>والـ <b>reverse current بيزيد</b>.</li>
+            <li>والـ Ge أحسس للحرارة من الـ Si والـ GaAs.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note warn"><b>خد بالك من السلايد</b>الرسمة مكتوب عليها <span class="m">(100°C)(−2.5 mV/°C) = −0.35 V</span>، بس الحسبة الصح <span class="m">100 × 2.5 mV = 0.25 V</span>. يعني من 25°C لـ 125°C الـ knee بتاع الـ Si بينزل من 0.7 لحوالي <span class="m">0.45 V</span>. ولو جالك في الامتحان، احسبها بنفسك.</div>
+      <p class="small">وفي الـ reverse: الـ <span class="m">I<sub>s</sub></span> بتاع الـ Ge حوالي µA، والـ Si حوالي 10 pA، والـ GaAs حوالي 5 pA (من رسمة المحاضرة).</p>
+      <p class="bridge">المعادلة صعبة في الحل اليدوي. فبنستخدم models أبسط.</p>
+    </section>
+
+    <section class="scene" id="c2-8" data-t="الـ diode models">
+      <div class="sh"><span class="n">8</span><h3>تلات models للـ diode: كل واحد أدق من اللي قبله</h3></div>
+      <div class="seg" id="c2mdl" role="group" aria-label="الـ model">
+        <button type="button" data-m="ideal" aria-pressed="true">1. Ideal</button>
+        <button type="button" data-m="prac" aria-pressed="false">2. Practical</button>
+        <button type="button" data-m="comp" aria-pressed="false">3. Complete</button>
+      </div>
+      <div class="two">
+        <div id="c2mdlViz"></div>
+        <div class="panel" id="c2mdlTxt"></div>
+      </div>
+      <div class="note"><b>الـ equivalent circuit من المحاضرة</b>الـ diode الحقيقي = battery <span class="m">V<sub>K</sub> = 0.7 V</span> + مقاومة <span class="m">r<sub>av</sub> ≈ 10 Ω</span> + ideal diode. وده الـ complete model بالظبط.</div>
+      <p class="bridge">نطبّق التلاتة على نفس الدايرة.</p>
+    </section>
+
+    <section class="scene" id="c2-9" data-t="Example 1 و2">
+      <div class="sh"><span class="n">9</span><h3>Example 1 و2: نفس الدايرة بالتلات models</h3></div>
+      <p class="lead">battery <span class="m">V<sub>BIAS</sub></span>، ومقاومة <span class="m">R<sub>LIMIT</sub></span>، وdiode. احسب الـ voltage والتيار على الـ diode، والـ voltage على المقاومة. افترض <span class="m">r′<sub>d</sub> = 10 Ω</span>، و<span class="m">I<sub>R</sub> = 1 µA</span> في الـ reverse.</p>
+      <div class="two">
+        <div id="c2exViz"></div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+          <div class="seg" id="c2exDir" role="group" aria-label="الاتجاه">
+            <button type="button" data-d="f" aria-pressed="true">Example 1: forward</button>
+            <button type="button" data-d="r" aria-pressed="false">Example 2: reverse</button>
+          </div>
+          <div class="ctl"><label for="c2exV"><span class="m">V<sub>BIAS</sub></span></label><input type="range" id="c2exV" min="0" max="20" step="0.5" value="10"><output id="c2exVO"></output></div>
+          <div class="ctl"><label for="c2exR"><span class="m">R<sub>LIMIT</sub></span></label><input type="range" id="c2exR" min="0" max="6" step="1" value="2"><output id="c2exRO"></output></div>
+        </div>
+      </div>
+      <div class="tblwrap" id="c2exTbl"></div>
+      <p class="small" id="c2exMsg"></p>
+      <p class="bridge">قبل ما نحلّل دواير أصعب: نقرا الـ datasheet ونختبر الـ diode إزاي؟</p>
+    </section>
+
+    <section class="scene" id="c2-10" data-t="Datasheet واختبار">
+      <div class="sh"><span class="n">10</span><h3>الـ datasheet، والشكل، والاختبار</h3></div>
+      <div class="two">
+        <div class="panel">
+          <h4>أهم 8 حاجات في الـ specification sheet</h4>
+          <ol class="steps small">
+            <li><span>الـ forward voltage <span class="m">V<sub>F</sub></span> عند تيار وحرارة معيّنين.</span></li>
+            <li><span>أقصى forward current <span class="m">I<sub>F</sub></span>.</span></li>
+            <li><span>الـ reverse saturation current <span class="m">I<sub>R</sub></span>.</span></li>
+            <li><span>أقصى reverse voltage: الـ PIV أو PRV أو <span class="m">V<sub>(BR)</sub></span>.</span></li>
+            <li><span>أقصى power dissipation.</span></li>
+            <li><span>الـ capacitance.</span></li>
+            <li><span>الـ reverse recovery time <span class="m">t<sub>rr</sub></span>: الوقت اللي بياخده عشان يبطّل يوصّل لما تقلبه من forward لـ reverse.</span></li>
+            <li><span>مدى حرارة التشغيل.</span></li>
+          </ol>
+        </div>
+        <div class="panel">
+          <h4>الرمز والشكل</h4>
+          <div id="c2sym"></div>
+          <p class="small">الـ <b>شريطة</b> اللي على جسم الـ diode بتعلّم الـ <b>cathode</b>، زي الخط اللي في الرمز بالظبط.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>اختبار الـ diode بالـ ohmmeter</h4>
+        <p class="small">حط الـ ohmmeter على scale ohms واطي، واختبر الـ diode وهو <b>برّه الدايرة</b>. اقلب الـ leads:</p>
+        <div class="two">
+          <div id="c2ohm"></div>
+          <div style="display:flex;flex-direction:column;gap:8px"><button class="btn" id="c2flip" style="align-self:flex-start">اقلب الـ diode</button><p id="c2ohmMsg"></p><p class="src">قاعدة معروفة (مش في السلايدز): لو الاتجاهين قريوا مقاومة واطية يبقى الـ diode عامل short، ولو الاتجاهين عالية يبقى open. وفي الحالتين بايظ.</p></div>
+        </div>
+      </div>
+      <p class="bridge">ندخل على تحليل الدواير. الطريقة كلها في سطر واحد.</p>
+    </section>
+
+    <section class="scene" id="c2-11" data-t="طريقة التحليل">
+      <div class="sh"><span class="n">11</span><h3>طريقة التحليل: افترض ON وراجع نفسك</h3></div>
+      <ul class="clean">
+        <li>الـ forward resistance بتاعة الـ diode عادةً صغيرة جداً قصاد باقي المقاومات اللي معاه في الـ series، فبنهملها (practical model).</li>
+        <li>الـ diode بيبقى <b class="cR">ON</b> لو التيار اللي عاملاه المصادر <b>في نفس اتجاه السهم</b>، و<span class="m">V<sub>D</sub> ≥ 0.7 V</span> للـ Si (أو 0.3 للـ Ge، أو 1.2 للـ GaAs).</li>
+      </ul>
+      <div class="flow" id="c2flow"></div>
+      <div class="three">
+        <div class="card"><b class="cR">Equivalent للـ ON</b><span class="small">battery <span class="m">V<sub>K</sub></span>. وفي الـ series: <span class="m">V<sub>R</sub> = E − V<sub>D</sub></span>، و<span class="m">I<sub>D</sub> = (E − V<sub>D</sub>) / R</span>.</span></div>
+        <div class="card"><b class="cN">Equivalent للـ OFF</b><span class="small">open circuit. <span class="m">I<sub>D</sub> = 0</span>، و<span class="m">V<sub>R</sub> = 0</span>، و<span class="m">V<sub>D</sub> = E</span>.</span></div>
+        <div class="card"><b>Source notation</b><span class="small"><span class="m">E = +10 V</span> مرسومة كدايرة صغيرة مكتوب جنبها <span class="m">+10 V</span>، والـ battery نفسها مش مرسومة. وبنفس الشكل <span class="m">−5 V</span>.</span></div>
+      </div>
+      <p class="bridge">جرّبها على كل أمثلة الـ series اللي في المحاضرة.</p>
+    </section>
+
+    <section class="scene" id="c2-12" data-t="Series solver">
+      <div class="sh"><span class="n">12</span><h3>الـ series circuits: حلّال الأمثلة</h3></div>
+      <p class="small">اختار مثال من المحاضرة، أو غيّر الأرقام واعمل مثالك:</p>
+      <div class="seg" id="c2pre" role="group" aria-label="أمثلة المحاضرة">
+        <button type="button" data-p="0" aria-pressed="true">Si · 8 V</button>
+        <button type="button" data-p="1" aria-pressed="false">Si مقلوب</button>
+        <button type="button" data-p="2" aria-pressed="false">0.5 V بس</button>
+        <button type="button" data-p="3" aria-pressed="false">Si + red LED</button>
+        <button type="button" data-p="4" aria-pressed="false">Si + Si مقلوب</button>
+      </div>
+      <div id="c2ser"></div>
+      <div class="grid2">
+        <div class="ctl"><label for="c2E"><span class="m">E</span></label><input type="range" id="c2E" min="0" max="20" step="0.1" value="8"><output id="c2EO"></output></div>
+        <div class="ctl"><label for="c2R"><span class="m">R</span></label><input type="range" id="c2R" min="0" max="7" step="1" value="4"><output id="c2RO"></output></div>
+      </div>
+      <div class="grid2">
+        <div class="row"><span class="small">D1</span><select id="c2d1" class="txt"><option value="si">Si (0.7)</option><option value="ge">Ge (0.3)</option><option value="red">red LED (1.8)</option><option value="green">green LED (2.2)</option></select><button class="btn ghost" id="c2d1f">اقلب D1</button></div>
+        <div class="row"><span class="small">D2</span><select id="c2d2" class="txt"><option value="none">مفيش</option><option value="si">Si (0.7)</option><option value="ge">Ge (0.3)</option><option value="red">red LED (1.8)</option><option value="green">green LED (2.2)</option></select><button class="btn ghost" id="c2d2f">اقلب D2</button></div>
+      </div>
+      <div class="readout" id="c2serR"></div>
+      <ol class="steps" id="c2serSteps"></ol>
+      <p class="bridge">ولو فيه مصدرين؟ نفس الطريقة، بس الـ KVL أطول شوية.</p>
+    </section>
+
+    <section class="scene" id="c2-13" data-t="مصدرين">
+      <div class="sh"><span class="n">13</span><h3>مثال بمصدرين: احسب I وV₁ وV₂ وVₒ</h3></div>
+      <div class="two">
+        <div id="c2two"></div>
+        <ol class="steps" id="c2twoSteps"></ol>
+      </div>
+      <div class="row"><button class="btn" id="c2twoNext">الخطوة الجاية</button><button class="btn ghost" id="c2two0">من الأول</button></div>
+      <p class="bridge">دلوقتي الـ diodes جنب بعض (parallel).</p>
+    </section>
+
+    <section class="scene" id="c2-14" data-t="Parallel">
+      <div class="sh"><span class="n">14</span><h3>Parallel وseries-parallel</h3></div>
+      <div class="seg" id="c2par" role="group" aria-label="المثال">
+        <button type="button" data-p="0" aria-pressed="true">2 Si جنب بعض</button>
+        <button type="button" data-p="1" aria-pressed="false">Si جنب green LED</button>
+        <button type="button" data-p="2" aria-pressed="false">احسب <span class="m">I<sub>1</sub>, I<sub>2</sub>, I<sub>D2</sub></span></button>
+      </div>
+      <div class="two">
+        <div id="c2parViz"></div>
+        <div class="panel"><ol class="steps" id="c2parSteps"></ol><div class="note" id="c2parNote" style="margin-top:10px"></div></div>
+      </div>
+      <p class="bridge">آخر تطبيق، وهو مشروعك الجاي: logic gates من diodes بس.</p>
+    </section>
+
+    <section class="scene" id="c2-15" data-t="Logic gates">
+      <div class="sh"><span class="n">15</span><h3>OR وAND gates بالـ diodes</h3></div>
+      <p class="lead"><span class="ltr"><b>10 V = level 1</b></span>، و <span class="ltr"><b>0 V = level 0</b></span>. دوس على الـ inputs:</p>
+      <div class="grid2">
+        <div class="panel">
+          <h4>OR gate</h4>
+          <div class="row"><button class="btn ghost" id="c2or1">V₁</button><button class="btn ghost" id="c2or2">V₂</button></div>
+          <div id="c2orViz"></div>
+          <div class="tblwrap" id="c2orTbl"></div>
+        </div>
+        <div class="panel">
+          <h4>AND gate</h4>
+          <div class="row"><button class="btn ghost" id="c2and1">V₁</button><button class="btn ghost" id="c2and2">V₂</button></div>
+          <div id="c2andViz"></div>
+          <div class="tblwrap" id="c2andTbl"></div>
+        </div>
+      </div>
+      <ul class="clean small">
+        <li><b>OR</b>: أي input عليه 10 V بيخلّي الـ diode بتاعه forward، فـ <span class="m">V<sub>o</sub> = 10 − 0.7 = 9.3 V</span> (level 1). ولو الاتنين 0، الاتنين off، و<span class="m">V<sub>o</sub> = 0</span>.</li>
+        <li><b>AND</b>: الـ <span class="m">E = 10 V</span> بيشد <span class="m">V<sub>o</sub></span> لفوق. وأي input عليه 0 بيخلّي الـ diode بتاعه forward، فيمسك <span class="m">V<sub>o</sub></span> عند <span class="m">0.7 V</span> (level 0). ولو الاتنين 10، مفيش تيار، و<span class="m">V<sub>o</sub> = 10 V</span> (level 1).</li>
+      </ul>
+      <div class="note"><b>Project 1 (الأسبوع الجاي): Part 1</b>دواير logic gates بالـ diodes: الـ hardware، والـ simulation files لكل الدواير، والـ mathematical analysis لكل دايرة. وبعدين قارن بينهم.</div>
+      <p class="bridge">نلمّ الـ lecture.</p>
+    </section>
+
+    <section class="scene" id="c2-16" data-t="لخّص واختبر نفسك">
+      <div class="sh"><span class="n">16</span><h3>الخلاصة، واختبر نفسك</h3></div>
+      <div class="cheat">
+        <div class="card"><b>Bands</b><span class="small">insulator <span class="m">E<sub>g</sub> &gt; 3 eV</span>، وsemiconductor أقل، وconductor <span class="m">≈ 0</span>.</span></div>
+        <div class="card"><b>n-type</b><span class="small">5 valence (P وAs)، donor، وfree electrons.</span></div>
+        <div class="card"><b>p-type</b><span class="small">3 valence (B وAl)، acceptor، وholes.</span></div>
+        <div class="card"><b>Depletion</b><span class="small">بتوسع في الـ reverse، وبتضيق في الـ forward.</span></div>
+        <div class="card"><b>Knee</b><span class="small">Ge 0.3، وSi 0.7، وGaAs 1.2 V.</span></div>
+        <div class="card"><b>الحرارة</b><span class="small">الـ <span class="m">V<sub>F</sub></span> بيقلّ والـ <span class="m">I<sub>s</sub></span> بيزيد. والـ Ge أحسس واحد.</span></div>
+        <div class="card"><b>Models</b><span class="small">الـ ideal: short أو open. والـ practical: 0.7 V. والـ complete: <span class="m">0.7 + r′<sub>d</sub></span>.</span></div>
+        <div class="card"><b>التحليل</b><span class="small">افترض ON، واحسب، واتأكد من اتجاه التيار و<span class="m">E &gt; ΣV<sub>K</sub></span>.</span></div>
+      </div>
+      <h4>اختار الإجابة</h4>
+      <div class="qz" id="c2quiz"></div><p class="score" id="c2quizS"></p>
+      <h4>احسب</h4>
+      <details class="rv"><summary>Si diode forward مع <span class="m">E = 5 V</span> و<span class="m">R = 1 kΩ</span>. التيار كام؟ ولو Ge؟</summary><div class="ans"><p>Si: <span class="m">(5 − 0.7) / 1k = 4.3 mA</span>. وGe: <span class="m">(5 − 0.3) / 1k = 4.7 mA</span>.</p></div></details>
+      <details class="rv"><summary>نفس الدايرة بالـ complete model (<span class="m">r′<sub>d</sub> = 10 Ω</span>)، الـ <span class="m">V<sub>F</sub></span> كام؟</summary><div class="ans"><p><span class="m">I = 4.3 / 1010 = 4.26 mA</span>، يعني <span class="m">V<sub>F</sub> = 0.7 + 4.26 mA × 10 Ω ≈ 0.743 V</span>.</p></div></details>
+      <details class="rv"><summary>اتنين Si ورا بعض forward مع <span class="m">E = 1.2 V</span>. فيه تيار؟</summary><div class="ans"><p>لأ. محتاجين <span class="m">0.7 + 0.7 = 1.4 V</span>، و<span class="m">1.2 &lt; 1.4</span>، فالاتنين off، و<span class="m">I = 0</span>.</p></div></details>
+      <details class="rv"><summary>الـ <span class="m">V<sub>T</sub></span> عند 27°C كام؟</summary><div class="ans"><p><span class="m">T = 300 K</span>، يعني <span class="m">V<sub>T</sub> = (1.38 × 10⁻²³ × 300) / (1.6 × 10⁻¹⁹) ≈ 25.9 mV</span>.</p></div></details>
+      <details class="rv"><summary>الـ knee بتاع Si عند 25°C هو 0.7 V. عند 75°C هيبقى كام؟</summary><div class="ans"><p><span class="m">0.7 − 50 × 2.5 mV = 0.7 − 0.125 = 0.575 V</span>.</p></div></details>
+      <div class="endbar"><span class="small">الجاي في Lecture 3: Diode applications، يعني الـ rectifiers والـ clippers والـ clampers.</span><div class="row"><button class="btn ghost donebtn" data-ch="c2"></button><a class="btn" href="#circ" style="text-decoration:none">كل lectures الكورس</a></div></div>
+    </section>
+  </div>
+</article>

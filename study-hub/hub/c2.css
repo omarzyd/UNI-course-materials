@@ -1,0 +1,8 @@
+/* c2 */
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.fbox{flex:1 1 150px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fbox .fn{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);font-weight:700}
+.farr{align-self:center;color:var(--muted);font-weight:700}
+#c2ser,#c2two,#c2parViz{max-width:620px}
+.mdlv{display:grid;grid-template-columns:minmax(0,220px) minmax(0,300px);gap:12px;align-items:center;justify-content:center}
+@media (max-width:620px){.mdlv{grid-template-columns:minmax(0,1fr)}}

@@ -1,0 +1,91 @@
+<section class="scene" id="s2-x1" data-t="من الكتاب: J&amp;M 15.1–15.4">
+      <div class="sh"><span class="n">0</span><h3>من الكتاب: J&amp;M Chapter 15 (أول 4 sections)</h3></div>
+      <p class="lead"><span class="stag hw">Assignment 2</span> مكتوب فيه «J&amp;M Ch. 16.1–16.2». بس في نسخة الكتاب اللي على النت دلوقتي، الـ 16.1 هو «الـ ASR task» (حطيته في Lecture 1)، والـ 16.2 عن الـ CNNs. والكلام اللي بيطابق الـ lecture دي هو <b>15.1 لـ 15.4</b>، وده اللي هنا. ولو الـ PDF اللي عندك على Moodle فيه ترقيم تاني، الأولوية ليه.</p>
+
+      <div class="blk">
+        <h4><span class="stag book">15.1</span> الـ phones، وIPA وARPAbet</h4>
+        <p>الـ <b>phone</b> = صوت كلام واحد. والـ <b>IPA</b> هي الأبجدية الدولية لكل اللغات. والكتاب بيستخدم <b>ARPAbet</b>: رموز ASCII للإنجليزي الأمريكاني، يعني سهلة على الكمبيوتر. مثلاً <span class="ltr">cat = [k ae t]</span>، و<span class="ltr">parakeet = [p ae r ax k iy t]</span>.</p>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">15.2</span> الـ consonants: الـ place × الـ manner</h4>
+        <p>كل consonant بيتوصف برقمين: <b>فين</b> بيحصل التضييق (place of articulation)، و<b>إزاي</b> (manner). دوس على أي خانة:</p>
+        <div id="xcons"></div>
+        <div class="panel" id="xconsOut"></div>
+        <ul class="clean small">
+          <li><b>Sibilants</b> = <span class="ltr">[s] [z] [sh] [zh]</span>: fricatives بصوت صفير قوي، وطاقتهم في الـ frequencies العالية. وده اللي بتشوفه على الـ spectrogram.</li>
+          <li><b>Affricate</b> = stop وبعده fricative على طول: <span class="ltr">[ch]</span> زي chicken، و<span class="ltr">[jh]</span> زي giraffe.</li>
+          <li><b>Vowels</b> بتتوصف بـ 3 حاجات: ارتفاع اللسان (high/low)، ولقدّام ولا لورا (front/back)، والشفايف (rounded ولا لأ). وده بالظبط F1 وF2 والتدوير في Lecture 2.</li>
+        </ul>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">15.3</span> الـ prosody: F0 والطاقة والمدة</h4>
+        <div class="grid2">
+          <div class="card"><b>Prominence</b><span class="small">كلمة أو مقطع بيبان أكتر: بصوت أعلى، أو أطول، أو بتغيير في الـ F0. وبنعلّم عليه بـ <b>pitch accent</b>. والـ <b>lexical stress</b> بيحدد أنهي مقطع في الكلمة ينفع ياخد الـ accent.</span></div>
+          <div class="card"><b>Reduced vowel</b><span class="small">الـ vowel اللي مفيش عليها stress ممكن تضعف لـ <b>schwa</b> <span class="ltr">[ax]</span>، زي الـ vowel التانية في parakeet.</span></div>
+          <div class="card"><b>Tune</b><span class="small">طلوع ونزول الـ F0 على الجملة: <b>question rise</b> في سؤال yes/no، و<b>final fall</b> في الجملة الخبرية. وده الـ pitch contour اللي شفناه.</span></div>
+          <div class="card"><b>Intonation phrases</b><span class="small">الكلام بيتقسم لمجموعات بوقفات وتغيير في الـ tune. والـ ToBI طريقة لكتابة الـ accents والحدود دي.</span></div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag book">15.4</span> أرقام الـ sampling والـ quantization من الكتاب</h4>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th>الحالة</th><th>الـ sampling</th><th>الـ sample size</th><th>ليه</th></tr>
+          <tr><td>دقة كاملة للكلام</td><td>20 kHz</td><td>–</td><td>معظم معلومات الكلام تحت 10 kHz، والـ Nyquist بيقول ضعفها.</td></tr>
+          <tr><td>التليفون</td><td>8 kHz</td><td>8-bit (من −128 لـ 127)</td><td>شبكة التليفون بتعدّي أقل من 4 kHz بس.</td></tr>
+          <tr><td>mic عادي</td><td>16 kHz</td><td>16-bit (من −32768 لـ 32767)</td><td>الـ standard في الـ ASR.</td></tr>
+        </table></div>
+        <p><b>μ-law</b>: ضغط log بيتستخدم في التليفون، عشان ودن البني آدم <b>أحسس للأصوات الضعيفة</b> من القوية. فبيدّي الـ values الصغيرة دقة أكتر، على حساب الكبيرة:</p>
+        <div class="mb">F(x) = sgn(x) · log(1 + μ|x|) / log(1 + μ),   −1 ≤ x ≤ 1,   μ = 255 (8 bits)</div>
+        <div id="xmulaw"></div>
+      </div>
+      <p class="bridge">وعلى الكلام ده جت أسئلة في امتحانات قبل كده.</p>
+    </section>
+
+    <section class="scene" id="s2-x2" data-t="امتحانات سابقة + Assignment 2">
+      <div class="sh"><span class="n">0</span><h3>من امتحانات سابقة، ومن Assignment 2</h3></div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Final · Jan 2026 · Q1(b) (2 pts)</span><b>اقرا الـ spectrogram</b></div>
+        <div class="qen">Fricative sounds (f, v, s, sh) are made by forcing air through a narrow channel, creating hissing friction. Nasal murmur refers to the low-frequency energy from nasal resonance (m, n). Given the following spectrogram, what are the most likely spoken words? Justify.</div>
+        <figure class="fig figcrop"><img src="img/exam_spectrogram.webp" alt="spectrogram from the January 2026 final exam" loading="lazy"><figcaption>الـ spectrogram من الامتحان. الـ frequency axis هنا log: 56 و245 و1062 و4609 و20000 Hz.</figcaption></figure>
+        <div id="xspq"></div>
+        <details class="rv"><summary>التبرير خطوة بخطوة <span class="stag mine">قرايتي للصورة</span></summary><div class="ans">
+          <ol class="steps">
+            <li><span><b>أول كلمة:</b> بتبدأ بطاقة <b>عالية جداً</b> (فوق 4.6 kHz) من غير harmonics. ده hiss بتاع fricative، يعني <span class="ltr">/s/</span>.</span></li>
+            <li><span>بعده vowel: harmonics واضحة، وformants (الشرايط الصفرا). وبعدين سكوت، وبعده <b>خط رأسي</b> من فوق لتحت. ده الـ burst بتاع stop في الآخر (<span class="ltr">/t/</span> أو <span class="ltr">/p/</span>).</span></li>
+            <li><span><b>تاني كلمة:</b> مفيش hiss في الأول. فيه طاقة <b>واطية بس</b> (تحت 245 Hz) في الأول، وتاني بعد الـ vowel كحتة لوحدها. ده الـ <b>nasal murmur</b>، يعني <span class="ltr">/m/</span> في الأول والآخر.</span></li>
+            <li><span>كلمة بـ s وآخرها stop، وبعدها كلمة بـ m في الأول والآخر، يعني <b>SAT MOM</b> (B). والـ D غلط عشان الكلمة التانية مفيهاش hiss. والـ A غلط عشان أول كلمة مش بتبدأ بـ nasal.</span></li>
+          </ol>
+          <p class="small">الامتحان مش جايب حل نموذجي. ده تحليلي للصورة بقواعد المحاضرة.</p>
+        </div></details>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Final · Jan 2026 · Q1(a) (1 pt)</span><b>الـ frequency لـ signal مش periodic</b></div>
+        <div class="qen">How to compute the frequency of a signal that is not regular (aperiodic), i.e. the signal does not repeat at a fixed interval?</div>
+        <details class="rv"><summary>إجابة نموذجية</summary><div class="ans"><p>مفيش period واحد نطلّع منه <span class="m">f = 1/T</span>. بنستخدم <b>Fourier transform</b> (عملياً DFT/FFT على frame قصيرة بعد الـ window). الـ signal بتتحلل لمجموع sinusoids، والـ <b>spectrum</b> بيقول قد إيه طاقة عند كل frequency. ولو الـ signal بتتغير مع الوقت (زي الكلام)، اعمل ده لكل frame: يطلع الـ spectrogram. ونوع الطاقة بيوصف الصوت: الـ <span class="ltr">/s/</span> مثلاً طاقته موزعة على frequencies عالية، ومن غير F0.</p></div></details>
+      </div>
+
+      <div class="exq">
+        <div class="exh"><span class="stag exam">Midterm سابق (صور الامتحان) · Q1</span><b>MCQ على الـ foundations</b></div>
+        <div class="mcq" id="xmcq2"></div>
+      </div>
+
+      <div class="blk">
+        <h4><span class="stag hw">Assignment 2</span> هتعمل كل جزء بإيه، وخد بالك من إيه</h4>
+        <div class="tblwrap"><table class="cmp">
+          <tr><th>المطلوب</th><th>الأداة</th><th>خد بالك</th></tr>
+          <tr><td>تحميل الصوت</td><td class="mono">librosa.load(path, sr=None)</td><td>لو ما كتبتش <span class="mono">sr=None</span>، الـ librosa هتعمل resample لـ 22050 من غير ما تقولك.</td></tr>
+          <tr><td>RMS intensity</td><td class="mono">librosa.feature.rms</td><td>استخدم نفس الـ frame والـ hop بتوع الـ F0، عشان المحور يتطابق.</td></tr>
+          <tr><td>F0 contour و voiced/unvoiced</td><td class="mono">librosa.pyin</td><td>بيرجّع <span class="mono">voiced_flag</span> جاهز، والـ F0 بيبقى NaN في الحتت الـ unvoiced (التقطيع اللي في الـ contour).</td></tr>
+          <tr><td>F1 و F2</td><td>LPC (<span class="mono">librosa.lpc</span> وroots) أو Praat</td><td>الـ librosa مفيهاش formant tracker جاهز. اختار حتة ثابتة في نص الـ vowel.</td></tr>
+          <tr><td>Downsample لـ 8k و4k</td><td class="mono">librosa.resample</td><td>عند 4 kHz، الـ Nyquist بيبقى 2 kHz بس، فـ F2 بتاع الـ vowels الأمامية (≈ 2.3 kHz) بيضيع.</td></tr>
+          <tr><td>Requantize لـ 8 و4 bit</td><td class="mono">np.round(x·(2^(b−1)−1))/(2^(b−1)−1)</td><td>4-bit = 16 مستوى بس، والـ quantization noise هيبقى مسموع جداً.</td></tr>
+        </table></div>
+        <p class="small">والسؤال الأخير في الـ assignment (البوظان بيبقى مسموع إمتى، والـ ASR بيقع إمتى) هو نفس شكل أسئلة «خد موقف» في الامتحان: توقّع النتيجة الأول، وبعدين قيس.</p>
+      </div>
+      <p class="bridge">نلخّص Lecture 2.</p>
+    </section>
