@@ -11,6 +11,7 @@
 | Circuits (CSAI 205) | Sat 14 Nov 08:30 | L2 (+Sheet 2 solved) | L1, L3, L4, L5, L6 (+Sheets 1, 3-6, course projects) |
 
 ## Open issues / notes
+- The repo build shows a "made for my love" badge on the home page (setting `HUB_DEDICATION` in `build_hub.py`; empty string = no badge). The original artifact is published without it, so a clone differs from the original only by that badge.
 - Rabiner (1989) and the Nature papers (chip, AI Clinician, AlphaGo) are paywalled: ask the user for the PDFs.
 - Circuits has no past exam; the sheets with model answers are the closest.
 - Sheet 2 Q6(b): the figure says 4 V but the model answer uses -4 V (flagged on the page).

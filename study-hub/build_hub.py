@@ -22,7 +22,14 @@ rep("<title>حكاية RL</title>", "<title>مكتبة المذاكرة</title>"
 css = rd("hub.css") + "".join(rd(x + ".css") for x in LECS if os.path.exists(os.path.join(HUB, x + ".css")))
 cut("/* narration */", "@media (max-width:860px){\n  .chapter", css + "\n")
 
-HEADER = """<header class="top">
+import html as _html
+# Small burgundy dedication pill, top-left of the home page. Default text is in the repo (so a clone shows it).
+# Override: environment variable HUB_DEDICATION="some text"; set it to empty to build WITHOUT the badge.
+DEDICATION = os.environ.get("HUB_DEDICATION", "made for my love").strip()
+DEDICATION_HTML = ('<div class="madefor" id="madefor" dir="ltr" hidden><span class="mf-heart" aria-hidden="true">♥</span>' + _html.escape(DEDICATION) + '</div>\n') if DEDICATION else ""
+OUT_PATH = os.environ.get("HUB_OUT") or os.path.join(HERE, "out", "study-hub.html")  # HUB_OUT=<file> writes somewhere else (e.g. a private variant)
+
+HEADER = DEDICATION_HTML + """<header class="top">
   <a class="brand" href="#home"><h1>مكتبة <span class="loopmark">المذاكرة</span></h1><p>كل كورس ليه tab، وكل lecture حكاية: بتبدأ بسؤال، وكل مشهد بيبني على اللي قبله.</p></a>
 </header>
 <nav class="tabs" id="tabs" aria-label="الكورسات"></nav>
@@ -69,7 +76,7 @@ if os.path.exists(xp):
 
 for bad in ["NARR", "CUES", "#aud", "renderMap(", "rl-story-last", 'id="map"']:
     assert bad not in h, "leftover: " + bad
-os.makedirs(os.path.join(HERE, "out"), exist_ok=True)
+os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
 NL = chr(10)
-open(os.path.join(HERE, "out", "study-hub.html"), "w", encoding="utf-8", newline=NL).write(h)  # LF everywhere, same bytes on every OS
+open(OUT_PATH, "w", encoding="utf-8", newline=NL).write(h)  # LF everywhere, same bytes on every OS
 print("ok", len(h) // 1024, "KB, lectures:", LECS)

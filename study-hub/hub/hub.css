@@ -109,3 +109,7 @@ details.rv summary::before{margin-inline-end:10px}
 .sh{flex-wrap:wrap}
 .mcq .opts,.qz .opts{direction:ltr;justify-content:flex-end}
 .mcq .qi>p:first-child{direction:ltr;text-align:left}
+/* dedication: small burgundy pill, top-left of the home page */
+.madefor{--bg1:#7A1F3D;--bg2:#5C1530;display:flex;align-items:center;gap:7px;width:fit-content;margin:0 auto 12px 0;padding:3px 13px 4px 10px;border-radius:999px;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#F6E7EA;font:italic 500 .8rem/1.6 "STIX Two Text",Georgia,serif;letter-spacing:.03em;box-shadow:0 1px 6px color-mix(in srgb,#5C1530 40%,transparent);border:1px solid #9C3556;user-select:none}
+.madefor .mf-heart{font-style:normal;font-size:.85em;color:#F2A5B8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .madefor{border-color:#B8496A;box-shadow:0 1px 8px color-mix(in srgb,#B8496A 30%,transparent)}}

@@ -109,7 +109,7 @@ function show(id,scroll){
   if(LEC[id]&&LEC[id].open&&document.getElementById("ch-"+id)){view="lec";lec=LEC[id];course=lec.course}
   else if(COURSES.some(c=>c.id===id)){view="course";course=COURSES.find(c=>c.id===id)}
   else id="home";
-  $("#v-home").hidden=view!=="home"; $("#v-course").hidden=view!=="course"; $("#crumbs").hidden=view!=="lec";
+  $("#v-home").hidden=view!=="home"; $("#v-course").hidden=view!=="course"; $("#crumbs").hidden=view!=="lec"; {const mf=$("#madefor");if(mf)mf.hidden=view!=="home"}
   $$(".chapter").forEach(a=>a.hidden=!(view==="lec"&&a.id==="ch-"+id));
   renderTabs(course?course.id:"home");
   if(view==="home")renderHome();

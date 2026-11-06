@@ -377,6 +377,10 @@ details.rv summary::before{margin-inline-end:10px}
 .sh{flex-wrap:wrap}
 .mcq .opts,.qz .opts{direction:ltr;justify-content:flex-end}
 .mcq .qi>p:first-child{direction:ltr;text-align:left}
+/* dedication: small burgundy pill, top-left of the home page */
+.madefor{--bg1:#7A1F3D;--bg2:#5C1530;display:flex;align-items:center;gap:7px;width:fit-content;margin:0 auto 12px 0;padding:3px 13px 4px 10px;border-radius:999px;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#F6E7EA;font:italic 500 .8rem/1.6 "STIX Two Text",Georgia,serif;letter-spacing:.03em;box-shadow:0 1px 6px color-mix(in srgb,#5C1530 40%,transparent);border:1px solid #9C3556;user-select:none}
+.madefor .mf-heart{font-style:normal;font-size:.85em;color:#F2A5B8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .madefor{border-color:#B8496A;box-shadow:0 1px 8px color-mix(in srgb,#B8496A 30%,transparent)}}
 /* s2 */
 .sylrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
 .syl{display:flex;flex-direction:column;gap:4px;align-items:stretch}
@@ -421,6 +425,7 @@ select.txt{width:auto}
 
 <div class="wrap" dir="rtl">
 
+<div class="madefor" id="madefor" dir="ltr" hidden><span class="mf-heart" aria-hidden="true">♥</span>made for my love</div>
 <header class="top">
   <a class="brand" href="#home"><h1>مكتبة <span class="loopmark">المذاكرة</span></h1><p>كل كورس ليه tab، وكل lecture حكاية: بتبدأ بسؤال، وكل مشهد بيبني على اللي قبله.</p></a>
 </header>
@@ -2931,7 +2936,7 @@ function show(id,scroll){
   if(LEC[id]&&LEC[id].open&&document.getElementById("ch-"+id)){view="lec";lec=LEC[id];course=lec.course}
   else if(COURSES.some(c=>c.id===id)){view="course";course=COURSES.find(c=>c.id===id)}
   else id="home";
-  $("#v-home").hidden=view!=="home"; $("#v-course").hidden=view!=="course"; $("#crumbs").hidden=view!=="lec";
+  $("#v-home").hidden=view!=="home"; $("#v-course").hidden=view!=="course"; $("#crumbs").hidden=view!=="lec"; {const mf=$("#madefor");if(mf)mf.hidden=view!=="home"}
   $$(".chapter").forEach(a=>a.hidden=!(view==="lec"&&a.id==="ch-"+id));
   renderTabs(course?course.id:"home");
   if(view==="home")renderHome();
